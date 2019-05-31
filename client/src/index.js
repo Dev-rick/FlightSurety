@@ -13,12 +13,12 @@ import {Container} from 'react-bootstrap';
 
 
 import App from './components/App';
-import Welcome from './components/Welcome';
+import Welcome from './components/MainPage/Welcome';
 import SignUp from './components/auth/SignUp';
 import SignIn from './components/auth/SignIn';
 import SignOut from './components/auth/SignOut';
 import reducers from './reducers';
-import Feature from './components/Feature';
+import Feature from './components/Others/Feature';
 
 // we can break up th App component from <App /> --> <App> ... </App> in order to
 // make it a parent component of </ Welcome> component which can get access to the
