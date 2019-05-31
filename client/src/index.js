@@ -1,3 +1,7 @@
+//This file is only for the different routes and not for component integration
+// This is done in the corresponding component assigned to the route
+
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter, Route } from 'react-router-dom';
@@ -5,6 +9,7 @@ import { Provider } from 'react-redux';
 //applyMiddleware helps us to apply middlewares
 import { createStore, applyMiddleware } from 'redux';
 import reduxThunk from 'redux-thunk';
+import {Container} from 'react-bootstrap';
 
 
 import App from './components/App';
@@ -38,10 +43,10 @@ ReactDOM.render(
     <BrowserRouter>
       <App>
         <Route path="/" exact component={ Welcome } />
-        <Route path="/signup" exact component={ SignUp } />
+        {/* <Route path="/signup" exact component={ SignUp } />
         <Route path="/signout" exact component={ SignOut } />
         <Route path="/signin" exact component={ SignIn } />
-        <Route path="/feature" exact component={ Feature } />
+        <Route path="/feature" exact component={ Feature } /> */}
       </App>
     </ BrowserRouter>
   </Provider>

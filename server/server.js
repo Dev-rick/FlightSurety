@@ -27,7 +27,7 @@ mongoose.connect(db, { useNewUrlParser: true })
 // morgan is just about login incomining requests (use for debugging)
 app.use(morgan('combined'));
 // use cors to enable requests from other domains which would be normally be blocked
-//by CORS implemented by the browser
+// by CORS implemented by the browser
 
 const whitelist = ['http://localhost:3000']
 

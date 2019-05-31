@@ -9,6 +9,8 @@ import passport from 'passport';
 // normally passport will create a cookie session but as we use tokens we don't
 // want that --> session: false
 
+// first the variable requireAuth or requireSignin is created when app.post or app.get is called
+// then the created variable is sent to the the function signin in authenicaion.js
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireSignin = passport.authenticate('local', {session: false});
