@@ -37,7 +37,7 @@ contract FlightSuretyData {
 
     /**
      * @dev Modifier that requires the "operational" boolean variable to be "true"
-     *      This is used on all state changing functions to pause the contract in 
+     *      This is used on all state changing functions to pause the contract in
      *      the event there is an issue that needs to be fixed
      */
     modifier requireIsOperational() {
@@ -137,8 +137,8 @@ contract FlightSuretyData {
         string memory flight,
         uint256 timestamp
     )
-    pure
     internal
+    pure
     returns(bytes32) {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
