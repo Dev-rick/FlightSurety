@@ -26,6 +26,7 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
     address private contractOwner; // Account used to deploy contract
+    FlightSuretyData flightSuretyData;
 
     struct Flight {
         bool isRegistered;
@@ -48,17 +49,17 @@ contract FlightSuretyApp {
      *      This is used on all state changing functions to pause the contract in
      *      the event there is an issue that needs to be fixed
      */
-    modifier requireIsOperational() {
-        // Modify to call data contract's status
-        require(true, "Contract is currently not operational");
-        _; // All modifiers require an "_" which indicates where the function body will be added
-    }
 
     /**
      * @dev Modifier that requires the "ContractOwner" account to be the function caller
      */
     modifier requireContractOwner() {
         require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
+
+    modifier checkConsensus(string memory _topic) {
+        require(flightSuretyData.checkConsensus(_topic), "Consenus is not reached");
         _;
     }
 
@@ -74,8 +75,8 @@ contract FlightSuretyApp {
         (address dataContract)
     public {
         contractOwner = msg.sender;
-
-    }
+        flightSuretyData = FlightSuretyData(dataContract);
+      }
 
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
@@ -99,10 +100,12 @@ contract FlightSuretyApp {
      */
 
      ///@dev calls the FlightSuretyData.sol
-    function registerAirline()
+    function registerUser(address _addressOfAirline, bool isAirline)
     external
-    pure
-    returns(bool success, uint256 votes) {
+    checkConsensus('operational')
+    returns(bool success, uint256 votes)
+    {
+        flightSuretyData.registerUser(_addressOfAirline, isAirline);
         return (success, 0);
     }
 
@@ -113,7 +116,8 @@ contract FlightSuretyApp {
      */
     function registerFlight()
     external
-    pure {
+    checkConsensus('operational')
+    {
 
     }
 
@@ -128,16 +132,18 @@ contract FlightSuretyApp {
         uint8 statusCode
     )
     internal
-    pure {}
+    checkConsensus('operational'){}
 
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
         address airline,
-        string flight,
+        string calldata flight,
         uint256 timestamp
     )
-    external {
+    external
+    checkConsensus('operational')
+    {
         uint8 index = getRandomIndex(msg.sender);
 
         // Generate a unique key for storing the request
@@ -198,7 +204,9 @@ contract FlightSuretyApp {
     // Register an oracle with the contract
     function registerOracle()
     external
-    payable {
+    payable
+    checkConsensus('operational')
+    {
         // Require registration fee
         require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
 
@@ -211,9 +219,10 @@ contract FlightSuretyApp {
     }
 
     function getMyIndexes()
-    view
     external
-    returns(uint8[3]) {
+    view
+    checkConsensus('operational')
+    returns(uint8[3] memory) {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
 
         return oracles[msg.sender].indexes;
@@ -229,11 +238,13 @@ contract FlightSuretyApp {
     function submitOracleResponse(
         uint8 index,
         address airline,
-        string flight,
+        string calldata flight,
         uint256 timestamp,
         uint8 statusCode
     )
-    external {
+    external
+    checkConsensus('operational')
+    {
         require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 
 
@@ -257,11 +268,12 @@ contract FlightSuretyApp {
 
     function getFlightKey(
         address airline,
-        string flight,
+        string memory flight,
         uint256 timestamp
     )
-    pure
     internal
+    view
+    checkConsensus('operational')
     returns(bytes32) {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
@@ -271,7 +283,8 @@ contract FlightSuretyApp {
         address account
     )
     internal
-    returns(uint8[3]) {
+    checkConsensus('operational')
+    returns(uint8[3] memory) {
         uint8[3] memory indexes;
         indexes[0] = getRandomIndex(account);
 
@@ -289,10 +302,12 @@ contract FlightSuretyApp {
     }
 
     // Returns array of three non-duplicating integers from 0-9
-    function getRandomIndex(
+    function
+    getRandomIndex(
         address account
     )
     internal
+    checkConsensus('operational')
     returns(uint8) {
         uint8 maxValue = 10;
 
@@ -308,4 +323,9 @@ contract FlightSuretyApp {
 
     // endregion
 
+}
+
+contract FlightSuretyData {
+    function registerUser(address addressOfUser, bool) external;
+    function checkConsensus(string calldata _topic) external view returns(bool);
 }

@@ -4,12 +4,14 @@
 import React from 'react';
 import '../css/main.css';
 // import Header from './Header';
+import Contract from './OverallComponents/Contract';
 import {Container} from 'react-bootstrap';
 
 export default ({ children }) => {
   return (
     <Container>
       {/* <Header /> */}
+      <Contract />
       { children }
     </Container>
   );
