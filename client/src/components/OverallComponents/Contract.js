@@ -26,13 +26,13 @@ class Contract extends Component {
         // the user successfully signed up
         // after function initWeb3 is successfully called the callback function of this.props.history.push is called
         await this.props.initWeb3(window, () => {
-            this.props.history.push('/');
+            console.log(this.props.web3Provider)
         });
-        console.log(this.props.web3Provider)
         // ATTENTION IF NOT TO BE CALLED INDSIDE initWeb3 or await if web3 undefined
-        // this.props.getMetaskAccountID(this.props.web3Provider, () => {
-        //     this.props.history.push('/');
-        // })
+        await this.props.getMetaskAccountID(this.props.web3Provider, () => {
+            console.log(this.props.metamaskAccount);
+            this.props.history.push('/');
+        })
     }
     render() {
         return (
@@ -97,12 +97,15 @@ class Contract extends Component {
 
 // receives the state from the store by calling this in the connect HOC
 function mapStateToProps(state) {
-    return { web3Provider: state.contract.web3Provider }
+    return { 
+        web3Provider: state.contract.web3Provider,
+        metamaskAccount: state.contract.metamaskAccount
+    }
   }
 
 export default compose(
   //put in here all HOC you want to use:
   // null --> no state wired up here
   connect(mapStateToProps, actions),
-  reduxForm({form: 'web3Provider'})
+  
 )(Contract);

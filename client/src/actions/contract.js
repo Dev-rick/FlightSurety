@@ -1,4 +1,4 @@
-import { WEB3_PROVIDER } from './types';
+import { WEB3_PROVIDER, METAMASK_ACCOUNT } from './types';
 import Web3 from 'web3';
 
 // export const signup = ({ email, password }) => {
@@ -43,4 +43,21 @@ export const initWeb3 = (formProps, callback) => async dispatch => {
             payload: new Web3.providers.HttpProvider('http://localhost:8545')
         })
     }
+}
+
+export const getMetaskAccountID = (web3Provider, callback) => async dispatch => {
+
+    let web3 = new Web3(web3Provider);
+        // Retrieving accounts
+    web3.eth.getAccounts(function(err, res) {
+        if (err) {
+            console.log('Error:',err);
+            return;
+        }
+        console.log('getMetaskID:',res);
+        dispatch({
+            type: METAMASK_ACCOUNT,
+            payload: res[0]
+        })
+    })
 }
