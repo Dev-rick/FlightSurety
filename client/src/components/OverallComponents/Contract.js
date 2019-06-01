@@ -1,15 +1,14 @@
 //make as component
 
 import { compose } from 'redux';
-import {reduxForm} from 'redux-form';
 import React, {Component} from 'react';
 import { connect } from 'react-redux';
-import * as actions from '../../actions/contract'
+import * as actions from '../../actions/contract';
 
 class Contract extends Component {
     state = {
         // web3Provider: null,
-        // contracts: {},
+        contract: {},
         // owner: null,
         // users: [],
         // airlines: [],
@@ -26,13 +25,22 @@ class Contract extends Component {
         // the user successfully signed up
         // after function initWeb3 is successfully called the callback function of this.props.history.push is called
         await this.props.initWeb3(window, () => {
-            console.log(this.props.web3Provider)
+            console.log("Hello", this.props.web3Provider)
         });
-        // ATTENTION IF NOT TO BE CALLED INDSIDE initWeb3 or await if web3 undefined
+
+        // Gets Metamask account
         await this.props.getMetaskAccountID(this.props.web3Provider, () => {
             console.log(this.props.metamaskAccount);
-            this.props.history.push('/');
         })
+        // inits contract
+        await this.props.initContract(this.props.web3Provider, async () => {
+            this.setState({contract: this.props.contract})
+            this.props.contract.setProvider(this.props.web3Provider);
+            //this.props.history.push('/');
+        })
+        const instance = await this.props.contract.deployed();
+        console.log(instance);
+        
     }
     render() {
         return (
@@ -99,7 +107,8 @@ class Contract extends Component {
 function mapStateToProps(state) {
     return { 
         web3Provider: state.contract.web3Provider,
-        metamaskAccount: state.contract.metamaskAccount
+        metamaskAccount: state.contract.metamaskAccount,
+        contract: state.contract.contract
     }
   }
 

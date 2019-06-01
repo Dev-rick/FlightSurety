@@ -1,6 +1,7 @@
-import { WEB3_PROVIDER, METAMASK_ACCOUNT } from './types';
+import TruffleContract from 'truffle-contract';
 import Web3 from 'web3';
-
+import { CONTRACT, METAMASK_ACCOUNT, WEB3_PROVIDER } from './types';
+import FlightSuretyApp from '../truffle-deployment/build/contracts/FlightSuretyApp'
 // export const signup = ({ email, password }) => {
 //   return function(dispatch) {
 //
@@ -43,6 +44,7 @@ export const initWeb3 = (formProps, callback) => async dispatch => {
             payload: new Web3.providers.HttpProvider('http://localhost:8545')
         })
     }
+    callback();
 }
 
 export const getMetaskAccountID = (web3Provider, callback) => async dispatch => {
@@ -60,4 +62,17 @@ export const getMetaskAccountID = (web3Provider, callback) => async dispatch => 
             payload: res[0]
         })
     })
+    callback();
+}
+
+export const initContract = (web3Provider, callback) => async dispatch => {
+
+
+    /// JSONfy the smart contracts
+    const FlightSuretyAppContract = await TruffleContract(FlightSuretyApp);
+    dispatch({
+        type: CONTRACT,
+        payload: TruffleContract(FlightSuretyAppContract)
+    })
+    callback();
 }
