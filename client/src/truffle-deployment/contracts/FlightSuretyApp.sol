@@ -6,6 +6,7 @@ pragma solidity ^0.5.8;
 
 import "./SafeMath.sol";
 
+
 /************************************************** */
 /* FlightSurety Smart Contract                      */
 /************************************************** */
@@ -25,6 +26,8 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
+    bool operational;
+
     address private contractOwner; // Account used to deploy contract
     FlightSuretyData flightSuretyData;
 
@@ -36,7 +39,7 @@ contract FlightSuretyApp {
     }
     mapping(bytes32 => Flight) private flights;
 
-
+    event Success(string topic);
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -58,10 +61,11 @@ contract FlightSuretyApp {
         _;
     }
 
-    modifier checkConsensus(string memory _topic) {
-        require(flightSuretyData.checkConsensus(_topic), "Consenus is not reached");
+    modifier requireOperational() {
+        require(operational, "Contract is not operational");
         _;
     }
+
 
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
@@ -76,6 +80,7 @@ contract FlightSuretyApp {
     public {
         contractOwner = msg.sender;
         flightSuretyData = FlightSuretyData(dataContract);
+        operational = true;
       }
 
     /********************************************************************************************/
@@ -90,23 +95,91 @@ contract FlightSuretyApp {
     }
 
     /********************************************************************************************/
+    /*                                     FLIGHTSURETYDATA CONTRACT FUNCTIONS                  */
+    /********************************************************************************************/
+
+    function setOperationalStatusOfDataContract(bool operationalStatus) external
+    requireOperational
+    {
+        address caller = msg.sender;
+        flightSuretyData.setOperationalStatus(operationalStatus, caller);
+        emit Success("Operational status set");
+    }
+
+    function registerAirline(address _addressOfAirline)
+    external
+    requireOperational
+    {
+        address caller = msg.sender;
+        flightSuretyData.registerAirline(_addressOfAirline, caller);
+        emit Success("Airline registered");
+    }
+
+    function registerAdmin() external
+    requireOperational
+    payable
+    {
+        address addressOfAirline = msg.sender;
+        uint256 amountSent = msg.value;
+        flightSuretyData.registerAdmin(addressOfAirline, amountSent);
+        emit Success("Admin registered");
+    }
+
+    function registerPassenger(string calldata flight, uint256 amountSent) external
+    requireOperational
+    payable
+    {
+        require(msg.value == amountSent, "Funding not corresponding to actual money send");
+        require(amountSent > 0 ether, "Not enough money send");
+        require(amountSent < 1 ether, "Too much money send");
+        address addressOfPassenger = msg.sender;
+        flightSuretyData.registerPassenger(addressOfPassenger, flight, msg.value);
+        emit Success("Passenger registered");
+    }
+
+    function deregisterPassenger() external
+    requireOperational
+    payable
+    {
+        address addressOfPassenger = msg.sender;
+        flightSuretyData.deregisterPassenger(addressOfPassenger);
+        emit Success("Passenger deregistered");
+    }
+
+    function setOpinion(string calldata _topic, bool _opinion) external
+    requireOperational
+    payable
+    {
+        address caller = msg.sender;
+        flightSuretyData.setOpinion(caller, _topic, _opinion);
+        emit Success("Opinion set");
+    }
+
+    function getOpinion(string calldata _topic) external
+    requireOperational
+    payable
+    {
+        address caller = msg.sender;
+        flightSuretyData.getOpinion(caller, _topic);
+        emit Success("Opinion retrieved");
+    }
+
+    function getBalance() external {
+        flightSuretyData.getBalance();
+        emit Success("Balance retrieved");
+    }
+
+
+
+    /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
 
-    /**
-     * @dev Add an airline to the registration queue
-     *
-     */
+    // Set operational status (only contract owner)
 
-     ///@dev calls the FlightSuretyData.sol
-    function registerUser(address _addressOfAirline, bool isAirline)
-    external
-    checkConsensus('operational')
-    returns(bool success, uint256 votes)
-    {
-        flightSuretyData.registerUser(_addressOfAirline, isAirline);
-        return (success, 0);
+    function setOperationalStatus(bool operationalStatus) external requireContractOwner{
+        operational = operationalStatus;
     }
 
 
@@ -116,7 +189,7 @@ contract FlightSuretyApp {
      */
     function registerFlight()
     external
-    checkConsensus('operational')
+    requireOperational
     {
 
     }
@@ -132,9 +205,7 @@ contract FlightSuretyApp {
         uint8 statusCode
     )
     internal
-    checkConsensus('operational'){}
-
-
+    requireOperational{}
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
         address airline,
@@ -142,7 +213,6 @@ contract FlightSuretyApp {
         uint256 timestamp
     )
     external
-    checkConsensus('operational')
     {
         uint8 index = getRandomIndex(msg.sender);
 
@@ -205,7 +275,7 @@ contract FlightSuretyApp {
     function registerOracle()
     external
     payable
-    checkConsensus('operational')
+    requireOperational
     {
         // Require registration fee
         require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
@@ -221,7 +291,7 @@ contract FlightSuretyApp {
     function getMyIndexes()
     external
     view
-    checkConsensus('operational')
+    requireOperational
     returns(uint8[3] memory) {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
 
@@ -243,7 +313,7 @@ contract FlightSuretyApp {
         uint8 statusCode
     )
     external
-    checkConsensus('operational')
+    requireOperational
     {
         require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 
@@ -273,7 +343,7 @@ contract FlightSuretyApp {
     )
     internal
     view
-    checkConsensus('operational')
+    requireOperational
     returns(bytes32) {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
@@ -283,7 +353,7 @@ contract FlightSuretyApp {
         address account
     )
     internal
-    checkConsensus('operational')
+    requireOperational
     returns(uint8[3] memory) {
         uint8[3] memory indexes;
         indexes[0] = getRandomIndex(account);
@@ -307,7 +377,7 @@ contract FlightSuretyApp {
         address account
     )
     internal
-    checkConsensus('operational')
+    requireOperational
     returns(uint8) {
         uint8 maxValue = 10;
 
@@ -326,6 +396,12 @@ contract FlightSuretyApp {
 }
 
 contract FlightSuretyData {
-    function registerUser(address addressOfUser, bool) external;
-    function checkConsensus(string calldata _topic) external view returns(bool);
+    function setOperationalStatus(bool operationalStatus, address caller) external;
+    function registerAirline(address addressOfAirline, address caller) external;
+    function registerAdmin(address addressOfAirline, uint256 amountSent) external payable;
+    function registerPassenger(address addressOfPassenger, string calldata flight, uint256 amountSent) external payable;
+    function deregisterPassenger(address addressOfPassenger) external;
+    function setOpinion(address caller, string calldata _topic, bool _opinion) external;
+    function getOpinion(address caller, string calldata _topic) external view;
+    function getBalance() public view;
 }

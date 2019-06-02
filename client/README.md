@@ -66,3 +66,26 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 ### `npm run build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+
+
+
+### Running the Tests
+
+1. Install ganache-cli
+
+    ```
+    $ npm install -g ganache-cli
+    ```
+
+2. Open a seperate terminal window and run ganache-cli:
+
+    ```
+    ganache-cli -m "spirit supply whale amount human item harsh scare congress discover talent hamster"
+    ```
+
+3. Run the tests:
+
+    ```
+    truffle test
+    ```
+

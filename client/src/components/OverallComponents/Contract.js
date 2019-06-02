@@ -6,18 +6,6 @@ import { connect } from 'react-redux';
 import * as actions from '../../actions/contract';
 
 class Contract extends Component {
-    state = {
-        // web3Provider: null,
-        contract: {},
-        // owner: null,
-        // users: [],
-        // airlines: [],
-        // admins: [],
-        // passengers: [],
-
-        // insert here all from supply Chain App.js!!!
-        // insert the dist version of truffle-contract in the html
-    }
     async componentDidMount() {
         /// Find or Inject Web3 Provider
         // calls the action creator wired up from Redux through connect
@@ -34,12 +22,14 @@ class Contract extends Component {
         })
         // inits contract
         await this.props.initContract(this.props.web3Provider, async () => {
-            this.setState({contract: this.props.contract})
-            this.props.contract.setProvider(this.props.web3Provider);
+            
+            // this.props.contract.setProvider(this.props.web3Provider);
             //this.props.history.push('/');
+            //this.props.contract.setInstance(this.props.contract);
         })
-        const instance = await this.props.contract.deployed();
-        console.log(instance);
+        
+        // const instance = await this.props.contract.deployed();
+        // console.log(instance);
         
     }
     render() {
@@ -48,37 +38,6 @@ class Contract extends Component {
         )
       }
 }
-
-// export default class Contract {
-//     constructor(network, callback) {
-
-//         let config = Config[network];
-//         this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
-//         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
-//         this.initialize(callback);
-//         this.owner = null;
-//         this.airlines = [];
-//         this.passengers = [];
-//     }
-
-//     initialize(callback) {
-//         this.web3.eth.getAccounts((error, accts) => {
-           
-//             this.owner = accts[0];
-
-//             let counter = 1;
-            
-//             while(this.airlines.length < 5) {
-//                 this.airlines.push(accts[counter++]);
-//             }
-
-//             while(this.passengers.length < 5) {
-//                 this.passengers.push(accts[counter++]);
-//             }
-
-//             callback();
-//         });
-//     }
 
 //     isOperational(callback) {
 //        let self = this;

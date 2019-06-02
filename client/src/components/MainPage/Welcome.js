@@ -1,8 +1,8 @@
 // Integrate here all components which are only visible at "/"
 
 import React from 'react';
-
-import FlightList from './FlightList';
+import "../../css/flightList.css";
+import PassengerRegistration from './PassengerRegistration';
 import { Container, Row, Col } from 'react-bootstrap';
 
 export default () => {
@@ -14,7 +14,7 @@ export default () => {
         </h3>
       </Row>
       <Row className="justify-content-md-center">
-          <FlightList />
+          <PassengerRegistration />
       </Row>
     </div>
   )

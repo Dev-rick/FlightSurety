@@ -70,9 +70,11 @@ export const initContract = (web3Provider, callback) => async dispatch => {
 
     /// JSONfy the smart contracts
     const FlightSuretyAppContract = await TruffleContract(FlightSuretyApp);
+    FlightSuretyAppContract.setProvider(web3Provider);
+    const instance = await FlightSuretyAppContract.deployed()
     dispatch({
         type: CONTRACT,
-        payload: TruffleContract(FlightSuretyAppContract)
+        payload: instance
     })
     callback();
 }

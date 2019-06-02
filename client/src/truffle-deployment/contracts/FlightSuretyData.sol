@@ -11,12 +11,13 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
     address private contractOwner; // Account used to deploy contract
-    bytes32 private HashOfContracteOwner;
     uint256 numberOfAdmins = 0;
+    bool operational;
 
     struct Topic {
+        bool exists;
         bool state;
-        mapping(bytes32 => Member) members;
+        mapping(address => Member) members;
         uint256 numberOfCurrentYes;
         uint requiredNumberOfYes;
     }
@@ -26,15 +27,20 @@ contract FlightSuretyData {
         bool opinion;
     }
 
-    struct UserProfile {
+    struct Airline {
         bool isRegistered;
-        bool isAirline;
         bool isAdmin;
-        bool isPassenger;
         uint256 balance;
     }
 
-    mapping(address => UserProfile) userProfiles;   // Mapping for storing user profiles
+    struct Passenger {
+        bool isRegistered;
+        string flight;
+        uint256 balance;
+    }
+
+    mapping(address => Airline) Airlines;   // Mapping for storing Airline profiles
+    mapping(address => Passenger) Passengers;   // Mapping for storing Passenger profiles
     mapping(string => Topic) topics;
     event Success();
     /********************************************************************************************/
@@ -47,25 +53,11 @@ contract FlightSuretyData {
      *      The deploying account becomes contractOwner
      */
     constructor
-        ()
+        (address FirstAirline, uint256 balance)
     public {
         contractOwner = msg.sender;
-        userProfiles[contractOwner] = UserProfile(true, true, true, false, 0);
-        // initiate all topics with a requiredNumberOfYes of 1
-        HashOfContracteOwner = keccak256(abi.encodePacked(msg.sender));
-            /**
-                * @dev Modifier that requires the "operational" boolean variable to be "true"
-                *      This is used on all state changing functions to pause the contract in
-                *      the event there is an issue that needs to be fixed
-            */
-        topics["operational"].state = true;
-        topics["operational"].members[HashOfContracteOwner] = Member(true, true);
-        topics["operational"].numberOfCurrentYes = 1;
-        topics["operational"].requiredNumberOfYes = numberOfAdmins * 33 / 100;
-        topics["registerNewAirlines"].state = true;
-        topics["registerNewAirlines"].members[HashOfContracteOwner] = Member(true, true);
-        topics["registerNewAirlines"].numberOfCurrentYes = 1;
-        topics["registerNewAirlines"].requiredNumberOfYes = numberOfAdmins * 33 / 100;
+        Airlines[FirstAirline] = Airline(true, true, balance);
+        operational = true;
     }
 
     /********************************************************************************************/
@@ -83,14 +75,20 @@ contract FlightSuretyData {
     /**
      * @dev Modifier that requires the "ContractOwner" account to be the function caller
      */
-    modifier requireContractOwner() {
-        require(msg.sender == contractOwner, "Caller is not contract owner");
+    modifier requireContractOwner(address caller) {
+        require(caller == contractOwner, "Caller is not contract owner");
         _;
     }
 
-    // Checks if msg.sender is an Admin
-    modifier requireAdmin(){
-        require(userProfiles[msg.sender].isAdmin, "Caller is not an Admin");
+    // Checks if caller is an Admin
+    modifier requireAdmin(address caller){
+        require(Airlines[caller].isAdmin, "Caller is not an Admin");
+        _;
+    }
+
+    //checks operationalstatus
+    modifier requireOperational() {
+        require(operational, "Contract is not operational");
         _;
     }
 
@@ -101,10 +99,8 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier requireDifferentOpinion(string memory _topic, bool _opinion) {
-        address caller = msg.sender;
-        bytes32 HashOfCaller = keccak256(abi.encodePacked(caller));
-        require(topics[_topic].members[HashOfCaller].opinion != _opinion, "Your opinion did not change");
+    modifier requireDifferentOpinion(address caller, string memory _topic, bool _opinion) {
+         require(topics[_topic].members[caller].opinion != _opinion, "Your opinion did not change");
         _;
     }
 
@@ -112,19 +108,50 @@ contract FlightSuretyData {
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
-    // Setting an opinion
-    function setOpinion(string calldata _topic, bool _opinion) external
-    requireAdmin
-    requireDifferentOpinion(_topic, _opinion)
+    function createNewTopic(address caller, string memory _topic) internal
+    requireOperational
     {
-        address caller = msg.sender;
-        bytes32 HashOfCaller = keccak256(abi.encodePacked(caller));
-        if (!topics[_topic].members[HashOfCaller].exists) {
-            topics[_topic].members[HashOfCaller] = Member(true, _opinion);
+        topics[_topic].members[caller] = Member(true, true);
+        topics[_topic].exists = true;
+        topics[_topic].numberOfCurrentYes = 1;
+        topics[_topic].requiredNumberOfYes = numberOfAdmins.mul(50).div(100);
+    }
+
+    function toString(address x) internal pure returns (string memory) {
+        bytes memory b = new bytes(20);
+        for (uint i = 0; i < 20; i++)
+            b[i] = byte(uint8(uint(x) / (2**(8*(19 - i)))));
+        return string(b);
+    }
+
+
+    /********************************************************************************************/
+    /*                                     SMART CONTRACT FUNCTIONS                             */
+    /********************************************************************************************/
+
+    // Get balance of account
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+
+    // setting operational status
+    function setOperationalStatus(bool operationalStatus,address caller) external requireAdmin(caller){
+        operational = operationalStatus;
+    }
+
+    // Setting an opinion
+    function setOpinion(address caller, string calldata _topic, bool _opinion) external
+    requireOperational
+    requireAdmin(caller)
+    requireDifferentOpinion(caller, _topic, _opinion)
+    {
+        if (!topics[_topic].members[caller].exists) {
+            topics[_topic].members[caller] = Member(true, _opinion);
             emit Success();
-        } else if (topics[_topic].members[HashOfCaller].exists) {
-            if (topics[_topic].members[HashOfCaller].opinion != _opinion) {
-                topics[_topic].members[HashOfCaller].opinion = _opinion;
+        } else if (topics[_topic].members[caller].exists) {
+            if (topics[_topic].members[caller].opinion != _opinion) {
+                topics[_topic].members[caller].opinion = _opinion;
             }
         }
         if (_opinion) {
@@ -141,43 +168,70 @@ contract FlightSuretyData {
         }
     }
 
-
-
-    /********************************************************************************************/
-    /*                                     SMART CONTRACT FUNCTIONS                             */
-    /********************************************************************************************/
+    function getOpinion(address caller, string calldata _topic)
+    external
+    view
+    requireOperational
+    returns(uint256 currentNumberOfYes,uint256 requiredNumberOfYes, bool myOpinion){
+        return(
+            currentNumberOfYes = topics[_topic].numberOfCurrentYes,
+            requiredNumberOfYes = topics[_topic].requiredNumberOfYes,
+            myOpinion = topics[_topic].members[caller].opinion
+        );
+    }
 
     /**
      * @dev Add an airline to the registration queue
      *      Can only be called from FlightSuretyApp contract
      *
      */
-    function registerUser(address addressOfUser, bool Airline)
+
+    function registerAirline(address addressOfAirline, address caller)
     external
-    requireMConsensus("operational")
-    requireMConsensus("registerNewAirlines")
+    requireOperational
+    requireAdmin(caller)
     {
-        require(!userProfiles[addressOfUser].isRegistered, "User is already registered.");
-        if (Airline) {
-            userProfiles[addressOfUser] = UserProfile(true, true, false, false, 0);
-        }
-        else if (!Airline) {
-            userProfiles[addressOfUser] = UserProfile(true, false, false, true, 0);
+        require(!Airlines[addressOfAirline].isRegistered, "Airline is already registered.");
+        if (numberOfAdmins < 5) {
+            Airlines[addressOfAirline] = Airline(true, false, 0);
+        } else {
+            string memory stringOfAirline = toString(addressOfAirline);
+            require(topics[stringOfAirline].exists, "Topic does already exists, please vote");
+            createNewTopic(caller, stringOfAirline);
         }
     }
 
     // registers a new admin
-    function registerAdmin(address addressOfUser) external payable
-    requireMConsensus("operational")
+    function registerAdmin(address addressOfAirline, uint256 amountSent) external payable
+    requireOperational
     {
-        require(userProfiles[addressOfUser].isRegistered, "First register as user");
-        require(userProfiles[addressOfUser].isAirline, "First register as user");
-        require(!userProfiles[addressOfUser].isAdmin, "User is already admin");
-        require(msg.value != 10 ether, "Min of 10 ether are required");
-        userProfiles[addressOfUser].balance = msg.value;
-        userProfiles[addressOfUser].isAdmin = true;
+        require(Airlines[addressOfAirline].isRegistered, "First register as Airline");
+        require(!Airlines[addressOfAirline].isAdmin, "Airline is already admin");
+        require(amountSent != 10 ether, "Min of 10 ether are required");
+        Airlines[addressOfAirline].balance = amountSent;
+        Airlines[addressOfAirline].isAdmin = true;
+        numberOfAdmins += 1;
     }
 
+    //register a new passenger
+    function registerPassenger(address addressOfPassenger, string calldata flight, uint256 amountSent)
+    external
+    payable
+    requireOperational
+    {
+        require(!Passengers[addressOfPassenger].isRegistered, "Passenger is already registered.");
+        Passengers[addressOfPassenger] = Passenger(true, flight, amountSent);
+    }
+
+    //deregister a new passenger
+    function deregisterPassenger(address addressOfPassenger)
+    external
+    requireOperational
+    {
+        require(Passengers[addressOfPassenger].isRegistered, "Passenger is already deleted");
+        require(Passengers[addressOfPassenger].balance == 0, "Please withdraw first the money");
+        delete Passengers[addressOfPassenger];
+    }
     /**
      * @dev Buy insurance for a flight
      *
@@ -185,7 +239,7 @@ contract FlightSuretyData {
     function buy()
     external
     payable
-    requireMConsensus("operational")
+    requireOperational
     {
 
     }
@@ -195,7 +249,7 @@ contract FlightSuretyData {
      */
     function creditInsurees()
     external
-    requireMConsensus("operational")
+    requireOperational
     {}
 
 
@@ -205,7 +259,7 @@ contract FlightSuretyData {
      */
     function pay()
     external
-    requireMConsensus("operational")
+    requireOperational
     {}
 
     /**
@@ -216,7 +270,7 @@ contract FlightSuretyData {
     function fund()
     public
     payable
-    requireMConsensus("operational")
+    requireOperational
     {}
 
     function getFlightKey(
@@ -226,18 +280,11 @@ contract FlightSuretyData {
     )
     internal
     view
-    requireMConsensus("operational")
+    requireOperational
     returns(bytes32) {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
 
-    function checkConsensus (string calldata _topic) external view
-    requireMConsensus(_topic)
-    returns(bool) {
-        return(
-            true
-        );
-    }
     /**
      * @dev Fallback function for funding smart contract.
      *
@@ -245,7 +292,7 @@ contract FlightSuretyData {
     function ()
     external
     payable
-    requireMConsensus("operational")
+    requireOperational
     {
         fund();
     }
