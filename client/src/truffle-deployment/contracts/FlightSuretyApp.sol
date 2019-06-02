@@ -31,14 +31,6 @@ contract FlightSuretyApp {
     address private contractOwner; // Account used to deploy contract
     FlightSuretyData flightSuretyData;
 
-    struct Flight {
-        bool isRegistered;
-        uint8 statusCode;
-        uint256 updatedTimestamp;
-        address airline;
-    }
-    mapping(bytes32 => Flight) private flights;
-
     event Success(string topic);
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -125,30 +117,32 @@ contract FlightSuretyApp {
         emit Success("Admin registered");
     }
 
-    function registerPassenger(string calldata flight, uint256 amountSent) external
-    requireOperational
+    function registerFlight(
+        string calldata _flight,
+        address _airline,
+        uint256 _timestamp,
+        address _addressOfPassenger,
+        uint256 _amountSent
+        )
+    external
     payable
+    requireOperational
     {
-        require(msg.value == amountSent, "Funding not corresponding to actual money send");
-        require(amountSent > 0 ether, "Not enough money send");
-        require(amountSent < 1 ether, "Too much money send");
-        address addressOfPassenger = msg.sender;
-        flightSuretyData.registerPassenger(addressOfPassenger, flight, msg.value);
-        emit Success("Passenger registered");
+        require(msg.value == _amountSent, "Funding not corresponding to actual money send");
+        require(_amountSent > 0 ether, "Not enough money send");
+        require(_amountSent < 1 ether, "Too much money send");
+        flightSuretyData.registerFlight(_flight, _airline, _timestamp, _addressOfPassenger, _amountSent);
     }
 
-    function deregisterPassenger() external
+    function deregisterFlight(string calldata _flight) external
     requireOperational
-    payable
     {
-        address addressOfPassenger = msg.sender;
-        flightSuretyData.deregisterPassenger(addressOfPassenger);
-        emit Success("Passenger deregistered");
+        flightSuretyData.deregisterFlight(_flight);
+        emit Success("Flight deregistered");
     }
 
     function setOpinion(string calldata _topic, bool _opinion) external
     requireOperational
-    payable
     {
         address caller = msg.sender;
         flightSuretyData.setOpinion(caller, _topic, _opinion);
@@ -157,7 +151,6 @@ contract FlightSuretyApp {
 
     function getOpinion(string calldata _topic) external
     requireOperational
-    payable
     {
         address caller = msg.sender;
         flightSuretyData.getOpinion(caller, _topic);
@@ -168,6 +161,7 @@ contract FlightSuretyApp {
         flightSuretyData.getBalance();
         emit Success("Balance retrieved");
     }
+
 
 
 
@@ -182,17 +176,6 @@ contract FlightSuretyApp {
         operational = operationalStatus;
     }
 
-
-    /**
-     * @dev Register a future flight for insuring.
-     *
-     */
-    function registerFlight()
-    external
-    requireOperational
-    {
-
-    }
 
     /**
      * @dev Called after oracle has updated flight status
@@ -271,7 +254,38 @@ contract FlightSuretyApp {
     event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
 
 
-    // Register an oracle with the contract
+    // Register default oracles with the contract
+    function registerDefaultOracles(address _oracle)
+    external
+    payable
+    requireOperational
+    {
+        // No registration fee required
+        uint8[3] memory indexes = generateIndexes(_oracle);
+
+        oracles[_oracle] = Oracle({
+            isRegistered: true,
+            indexes: indexes
+        });
+    }
+
+    function getIndexOfOracle(address _oracle)
+    public
+    view
+        returns(
+        uint8 firstIndexesForOracle,
+        uint8 secondIndexesForOracle,
+        uint8 thirdIndexesForOracle
+    )
+    {
+      return(
+        firstIndexesForOracle = oracles[_oracle].indexes[0],
+        secondIndexesForOracle = oracles[_oracle].indexes[1],
+        thirdIndexesForOracle = oracles[_oracle].indexes[2]
+    );
+    }
+
+    // Register new oracle
     function registerOracle()
     external
     payable
@@ -286,6 +300,7 @@ contract FlightSuretyApp {
             isRegistered: true,
             indexes: indexes
         });
+
     }
 
     function getMyIndexes()
@@ -399,8 +414,14 @@ contract FlightSuretyData {
     function setOperationalStatus(bool operationalStatus, address caller) external;
     function registerAirline(address addressOfAirline, address caller) external;
     function registerAdmin(address addressOfAirline, uint256 amountSent) external payable;
-    function registerPassenger(address addressOfPassenger, string calldata flight, uint256 amountSent) external payable;
-    function deregisterPassenger(address addressOfPassenger) external;
+    function registerFlight(
+        string calldata _flight,
+        address _airline,
+        uint256 _timestamp,
+        address _addressOfPassenger,
+        uint256 _amountSent
+        ) external payable;
+    function deregisterFlight(string calldata _flight) external;
     function setOpinion(address caller, string calldata _topic, bool _opinion) external;
     function getOpinion(address caller, string calldata _topic) external view;
     function getBalance() public view;

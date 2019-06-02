@@ -8,6 +8,7 @@ contract('FlightSuretyApp', function(accounts) {
     const passengerID = accounts[1]
     const passengerInsuredAmount = 10;
     const flight = "ZEN234";
+    const oracleExample = accounts[4];
 
     ///Available Accounts
     ///==================
@@ -26,6 +27,7 @@ contract('FlightSuretyApp', function(accounts) {
     console.log("Contract Owner: accounts[0] ", accounts[0])
     console.log("Passenger: accounts[1] ", accounts[1])
     console.log("Airline: accounts[2] ", accounts[2])
+    console.log("Oracle: accounts[3] ", accounts[3])
 
     it("Testing registerPassenger function", async() => {
         const instance = await FlightSuretyApp.deployed()
@@ -39,6 +41,20 @@ contract('FlightSuretyApp', function(accounts) {
         });
        
         assert.equal(eventEmittedFirst, true, 'Invalid Farmer Setting')  
+        
+    })
+
+    it("Testing registerDefaultOracle function", async() => {
+        const instance = await FlightSuretyApp.deployed()
+
+        let eventEmittedFirst = false;
+        
+        await instance.registerDefaultOracles(oracleExample, {from: ownerID});
+        let result = await instance.getIndexOfOracle.call(oracleExample);
+        console.log(result);
+        console.log(result[0].words[0]);
+
+        assert.equal(result.length, 3, 'NO Array was returned')  
         
     })
 });

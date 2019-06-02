@@ -3,9 +3,9 @@ import React, {Component} from 'react';
 import {Button, Form, Col, InputGroup} from 'react-bootstrap';
 
 import { connect } from 'react-redux';
-import * as actions from '../../actions/passengerRegistration';
+import * as actions from '../../actions/oraclesRegistration';
 
-class PassengerRegistration extends Component {
+class OraclesRegistration extends Component {
   constructor(...args) {
     super(...args);
     this.state = { 
@@ -58,7 +58,7 @@ class PassengerRegistration extends Component {
       console.log(this.props.contract);
       try { 
         console.log(this);
-        //result = await this.props.contract.registerPassenger(flight, amount, {from: this.props.metamaskAccount, value: amount}); 
+        result = await this.props.contract.registerPassenger(flight, amount, {from: this.props.metamaskAccount, value: amount}); 
         console.log("Passenger Registered", result);
       } catch(err) {
         
@@ -121,5 +121,5 @@ export default compose(
 // null --> no state wired up here
 connect(mapStateToProps, actions),
 
-)(PassengerRegistration);
+)(OraclesRegistration);
 

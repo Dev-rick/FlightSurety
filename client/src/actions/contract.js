@@ -1,17 +1,8 @@
 import TruffleContract from 'truffle-contract';
 import Web3 from 'web3';
-import { CONTRACT, METAMASK_ACCOUNT, WEB3_PROVIDER } from './types';
+import { CONTRACT, METAMASK_ACCOUNT, WEB3_PROVIDER, ORACLES } from './types';
 import FlightSuretyApp from '../truffle-deployment/build/contracts/FlightSuretyApp'
-// export const signup = ({ email, password }) => {
-//   return function(dispatch) {
-//
-//   }
-// }
-// the same as:
-// export const signup = ({ email, password }) => dispatch => {
-//
-// };
-
+import axios from 'axios';
 
 
 //signup is an action creator
@@ -76,5 +67,52 @@ export const initContract = (web3Provider, callback) => async dispatch => {
         type: CONTRACT,
         payload: instance
     })
-    callback();
+    callback(instance);
+}
+
+export const registerOracles = (contract, metamaskAccount, callback) => async dispatch => {
+    
+        const oracles = await axios.get('http://localhost:3090/registerOracles');
+        const ArrayOfOracles = oracles.data;
+        
+        let oraclesWithIndexes = [];
+
+        class Oracle  {
+            constructor(name, indexes) {
+                this.name = name;
+                this.indexes = indexes;
+            }
+        }
+
+        class Indexes {
+            constructor(firstIndex, secondIndex, thirdIndex) {
+                this.firstIndex = firstIndex;
+                this.secondIndex = secondIndex;
+                this.thirdIndex = thirdIndex;
+            }
+        }
+        console.log(ArrayOfOracles);
+
+        
+        for (let i = 0; i < ArrayOfOracles.length - 1; i++) {
+            console.log(ArrayOfOracles[i], metamaskAccount);
+            await contract.registerDefaultOracles(ArrayOfOracles[i], {from: metamaskAccount});
+            let indexes = await contract.getIndexOfOracle.call(ArrayOfOracles[i]);
+            let addressOfOracle = ArrayOfOracles[i];
+            let indexObject = new Indexes(indexes[0].words[0], indexes[1].words[0], indexes[2].words[0]);
+            let oracleWithIndexes = new Oracle(addressOfOracle, indexObject);
+            console.log(oracleWithIndexes);
+            oraclesWithIndexes.push(oracleWithIndexes);
+        }        
+        
+       
+
+        console.log(oraclesWithIndexes);
+        // oracles.forEach((entry) => 
+        //     await contract.entry)
+        dispatch({
+          type: ORACLES,
+          payload: oraclesWithIndexes
+        })
+        callback();
 }

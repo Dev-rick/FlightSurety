@@ -14,6 +14,13 @@ contract FlightSuretyData {
     uint256 numberOfAdmins = 0;
     bool operational;
 
+    uint8 private constant STATUS_CODE_UNKNOWN = 0;
+    uint8 private constant STATUS_CODE_ON_TIME = 10;
+    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
+    uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
+    uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
+    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
+
     struct Topic {
         bool exists;
         bool state;
@@ -33,14 +40,21 @@ contract FlightSuretyData {
         uint256 balance;
     }
 
+    struct Flight {
+        bool exists;
+        uint8 statusCode;
+        uint256 timestamp;
+        address airline;
+        mapping(address => Passenger) passengers;
+    }
+
     struct Passenger {
         bool isRegistered;
-        string flight;
         uint256 balance;
     }
 
-    mapping(address => Airline) Airlines;   // Mapping for storing Airline profiles
-    mapping(address => Passenger) Passengers;   // Mapping for storing Passenger profiles
+    mapping(address => Airline) airlines;   // Mapping for storing Airline profiles
+    mapping(string => Flight) flights;   // Mapping for storing Passenger profiles
     mapping(string => Topic) topics;
     event Success();
     /********************************************************************************************/
@@ -56,7 +70,7 @@ contract FlightSuretyData {
         (address FirstAirline, uint256 balance)
     public {
         contractOwner = msg.sender;
-        Airlines[FirstAirline] = Airline(true, true, balance);
+        airlines[FirstAirline] = Airline(true, true, balance);
         operational = true;
     }
 
@@ -82,7 +96,7 @@ contract FlightSuretyData {
 
     // Checks if caller is an Admin
     modifier requireAdmin(address caller){
-        require(Airlines[caller].isAdmin, "Caller is not an Admin");
+        require(airlines[caller].isAdmin, "Caller is not an Admin");
         _;
     }
 
@@ -191,9 +205,9 @@ contract FlightSuretyData {
     requireOperational
     requireAdmin(caller)
     {
-        require(!Airlines[addressOfAirline].isRegistered, "Airline is already registered.");
+        require(!airlines[addressOfAirline].isRegistered, "Airline is already registered.");
         if (numberOfAdmins < 5) {
-            Airlines[addressOfAirline] = Airline(true, false, 0);
+            airlines[addressOfAirline] = Airline(true, false, 0);
         } else {
             string memory stringOfAirline = toString(addressOfAirline);
             require(topics[stringOfAirline].exists, "Topic does already exists, please vote");
@@ -205,32 +219,41 @@ contract FlightSuretyData {
     function registerAdmin(address addressOfAirline, uint256 amountSent) external payable
     requireOperational
     {
-        require(Airlines[addressOfAirline].isRegistered, "First register as Airline");
-        require(!Airlines[addressOfAirline].isAdmin, "Airline is already admin");
+        require(airlines[addressOfAirline].isRegistered, "First register as Airline");
+        require(!airlines[addressOfAirline].isAdmin, "Airline is already admin");
         require(amountSent != 10 ether, "Min of 10 ether are required");
-        Airlines[addressOfAirline].balance = amountSent;
-        Airlines[addressOfAirline].isAdmin = true;
+        airlines[addressOfAirline].balance = amountSent;
+        airlines[addressOfAirline].isAdmin = true;
         numberOfAdmins += 1;
     }
 
     //register a new passenger
-    function registerPassenger(address addressOfPassenger, string calldata flight, uint256 amountSent)
+    function registerFlight(string calldata _flight, address _airline, uint256 _timestamp, address _addressOfPassenger, uint256 _amountSent)
     external
     payable
     requireOperational
     {
-        require(!Passengers[addressOfPassenger].isRegistered, "Passenger is already registered.");
-        Passengers[addressOfPassenger] = Passenger(true, flight, amountSent);
+        require(!flights[_flight].passengers[_addressOfPassenger].isRegistered, "You have already insured against this flight");
+        if (!flights[_flight].exists) {
+            flights[_flight].exists = true;
+            flights[_flight].statusCode = STATUS_CODE_UNKNOWN;
+            flights[_flight].timestamp = _timestamp;
+            flights[_flight].airline = _airline;
+            flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
+            flights[_flight].passengers[_addressOfPassenger].balance = _amountSent;
+        } else {
+            flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
+            flights[_flight].passengers[_addressOfPassenger].balance = _amountSent;
+        }
     }
 
     //deregister a new passenger
-    function deregisterPassenger(address addressOfPassenger)
+    function deregisterFlight(string calldata _flight)
     external
     requireOperational
     {
-        require(Passengers[addressOfPassenger].isRegistered, "Passenger is already deleted");
-        require(Passengers[addressOfPassenger].balance == 0, "Please withdraw first the money");
-        delete Passengers[addressOfPassenger];
+        require(flights[_flight].exists, "Flight is already deleted");
+        delete flights[_flight];
     }
     /**
      * @dev Buy insurance for a flight
