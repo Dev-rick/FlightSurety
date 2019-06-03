@@ -30,12 +30,6 @@ class Contract extends Component {
         })
 
         // Use this to search for indexes that match
-        let testIndex = 9;
-        this.props.oracles.forEach(oracle => {
-            let ValueArray = Object.values(oracle.indexes)
-            console.log(ValueArray); 
-        })
-        
         // const instance = await this.props.contract.deployed();
         // console.log(instance);
         

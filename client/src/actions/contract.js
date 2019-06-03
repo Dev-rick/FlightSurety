@@ -72,10 +72,10 @@ export const initContract = (web3Provider, callback) => async dispatch => {
 
 export const registerOracles = (contract, metamaskAccount, callback) => async dispatch => {
     
-        const oracles = await axios.get('http://localhost:3090/registerOracles');
+        const oracles = await axios.get('http://localhost:3090/getOracles');
         const ArrayOfOracles = oracles.data;
         
-        let oraclesWithIndexes = [];
+        
 
         class Oracle  {
             constructor(name, indexes) {
@@ -93,23 +93,43 @@ export const registerOracles = (contract, metamaskAccount, callback) => async di
         }
         console.log(ArrayOfOracles);
 
-        
-        for (let i = 0; i < ArrayOfOracles.length - 1; i++) {
-            console.log(ArrayOfOracles[i], metamaskAccount);
-            await contract.registerDefaultOracles(ArrayOfOracles[i], {from: metamaskAccount});
-            let indexes = await contract.getIndexOfOracle.call(ArrayOfOracles[i]);
-            let addressOfOracle = ArrayOfOracles[i];
-            let indexObject = new Indexes(indexes[0].words[0], indexes[1].words[0], indexes[2].words[0]);
-            let oracleWithIndexes = new Oracle(addressOfOracle, indexObject);
-            console.log(oracleWithIndexes);
-            oraclesWithIndexes.push(oracleWithIndexes);
-        }        
-        
-       
+        //map function
 
+        async function asyncForEach(array, callback) {
+            for (let index = 0; index < array.length; index++) {
+              await callback(array[index], index, array);
+            }
+          }
+
+        let oraclesWithIndexes = [];
+        
+        await asyncForEach(ArrayOfOracles, async (oracle) => {
+            let indexes
+            let response;
+            try{
+                await contract.registerDefaultOracles(oracle, {from: metamaskAccount});
+            } catch(err) {
+                console.log("Some Error in the contract function registerDefaultOracles", err);
+            }
+            try {
+                indexes = await contract.getIndexOfOracle.call(oracle);
+            } catch(err) {
+                console.log("Some Error in the contract function getIndexOfOracle", err);
+            }
+            let indexObject = new Indexes(indexes[0].words[0], indexes[1].words[0], indexes[2].words[0]);
+            let oracleWithIndexes = new Oracle(oracle, indexObject);
+            try {
+                // axios rquest to post oracles
+                response = await axios.post('http://localhost:3090/registerOracles', oracleWithIndexes)
+                console.log("SUCCESS", response);
+            } catch(err) {
+                console.log(err)
+            }
+            oraclesWithIndexes.push(oracleWithIndexes);
+            console.log(oracle);
+        });
+        console.log('Done');
         console.log(oraclesWithIndexes);
-        // oracles.forEach((entry) => 
-        //     await contract.entry)
         dispatch({
           type: ORACLES,
           payload: oraclesWithIndexes

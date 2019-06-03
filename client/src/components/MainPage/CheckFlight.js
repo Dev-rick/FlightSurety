@@ -3,27 +3,28 @@ import React, {Component} from 'react';
 import {Button, Form, Col, InputGroup} from 'react-bootstrap';
 
 import { connect } from 'react-redux';
-import * as actions from '../../actions/passengerRegistration';
+import * as actions from '../../actions/flightRegistration';
 
-class PassengerRegistration extends Component {
+class CheckFlight extends Component {
   constructor(...args) {
     super(...args);
     this.state = { 
       validated: false,
       form: {
         flight: "",
-        amount: ""
+        airline: "",
+        timestamp: ""
        }
     };
   }
 
   handleFormChange = (event) => {
     const form = event.currentTarget;
-    console.log(form);
     this.setState({   
       form: {
         flight: form.flight.value,
-        amount: form.amount.value
+        airline: form.airline.value,
+        timestamp: form.timestamp.value
       }
     });
   }
@@ -33,8 +34,9 @@ class PassengerRegistration extends Component {
       validated: false, 
       form: {
         flight: "",
-        amount: ""
-      }
+        airline: "",
+        timestamp: ""
+       }
     });
   }
 
@@ -44,24 +46,29 @@ class PassengerRegistration extends Component {
       event.preventDefault();
       event.stopPropagation();
     } else {
-      this.registerPassenger(event, this.clearForm)
+      this.registerFlight(event, this.clearForm)
     }
     this.setState({ validated: true });
   }
   
-  async registerPassenger(event, callback) {
+  async checkFlight(event, callback) {
     event.preventDefault();
     console.log(this.state.form.flight);
       const flight = this.state.form.flight.toString();
-      const amount = Number(this.state.form.amount);
+      const airline = this.state.form.airline.toString();
+      const updatedTimestamp = Number(this.state.form.timestamp.value.split("-").join(""));
       let result;
       console.log(this.props.contract);
       try { 
         console.log(this);
-        //result = await this.props.contract.registerPassenger(flight, amount, {from: this.props.metamaskAccount, value: amount}); 
-        console.log("Passenger Registered", result);
-      } catch(err) {
+        result = await this.props.contract.checkFlight.call(flight, airline, updatedTimestamp, {from: this.props.metamaskAccount}); 
         
+        console.log("Flight Registered", result);
+        if (result) {
+            console.log(true);
+            // lets appear form appear
+        }
+      } catch(err) {
         console.log(err.message);
       };
       callback();
@@ -86,11 +93,20 @@ class PassengerRegistration extends Component {
               Please provide a valid flight number.
             </Form.Control.Feedback>
           </Form.Group>
-          <Form.Group as={Col} md="6" controlId="amount">
+          <Form.Group as={Col} md="6" controlId="airline">
             <Form.Label>Ether to ensure</Form.Label>
-            <Form.Control type="number" placeholder="MAX 1 Ether" value={this.state.form.amount} required />
+            <Form.Control type="text" placeholder="0x18911376efeff48444d1323178bc9f5319686b75" value={this.state.form.airline} required />
             <Form.Control.Feedback type="invalid">
-              Please provide a valid ether amount.
+              Please provide a airline address.
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Form.Row>
+        <Form.Row>
+          <Form.Group as={Col} md="6" controlId="timestamp">
+            <Form.Label>Flight Number</Form.Label>
+            <Form.Control type="date" placeholder="201905041454" value={this.state.form.timestamp} required />
+            <Form.Control.Feedback type="invalid">
+              Please provide a valid timestamp.
             </Form.Control.Feedback>
           </Form.Group>
         </Form.Row>
@@ -110,7 +126,6 @@ class PassengerRegistration extends Component {
 // receives the state from the store by calling this in the connect HOC
 function mapStateToProps(state) {
   return { 
-      web3Provider: state.contract.web3Provider,
       metamaskAccount: state.contract.metamaskAccount,
       contract: state.contract.contract
   }
@@ -121,5 +136,5 @@ export default compose(
 // null --> no state wired up here
 connect(mapStateToProps, actions),
 
-)(PassengerRegistration);
+)(CheckFlight);
 

@@ -121,7 +121,6 @@ contract FlightSuretyApp {
         string calldata _flight,
         address _airline,
         uint256 _timestamp,
-        address _addressOfPassenger,
         uint256 _amountSent
         )
     external
@@ -131,6 +130,7 @@ contract FlightSuretyApp {
         require(msg.value == _amountSent, "Funding not corresponding to actual money send");
         require(_amountSent > 0 ether, "Not enough money send");
         require(_amountSent < 1 ether, "Too much money send");
+        address _addressOfPassenger = msg.sender;
         flightSuretyData.registerFlight(_flight, _airline, _timestamp, _addressOfPassenger, _amountSent);
     }
 
@@ -189,6 +189,7 @@ contract FlightSuretyApp {
     )
     internal
     requireOperational{}
+    
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
         address airline,
@@ -309,7 +310,6 @@ contract FlightSuretyApp {
     requireOperational
     returns(uint8[3] memory) {
         require(oracles[msg.sender].isRegistered, "Not registered as an oracle");
-
         return oracles[msg.sender].indexes;
     }
 
