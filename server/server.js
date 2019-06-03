@@ -29,7 +29,7 @@ app.use(morgan('combined'));
 // use cors to enable requests from other domains which would be normally be blocked
 // by CORS implemented by the browser
 
-const whitelist = ['http://localhost:3000']
+const whitelist = ['http://localhost:3000', 'http://localhost:3090']
 
 var corsOptions = {
   origin: function (origin, callback) {

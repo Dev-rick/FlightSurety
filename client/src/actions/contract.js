@@ -1,7 +1,7 @@
 import TruffleContract from 'truffle-contract';
 import Web3 from 'web3';
 import { CONTRACT, METAMASK_ACCOUNT, WEB3_PROVIDER, ORACLES } from './types';
-import FlightSuretyApp from '../truffle-deployment/build/contracts/FlightSuretyApp'
+import FlightSuretyApp from '../truffle-deployment/build/contracts/FlightSuretyApp';
 import axios from 'axios';
 
 
@@ -61,8 +61,19 @@ export const initContract = (web3Provider, callback) => async dispatch => {
 
     /// JSONfy the smart contracts
     const FlightSuretyAppContract = await TruffleContract(FlightSuretyApp);
+
     FlightSuretyAppContract.setProvider(web3Provider);
-    const instance = await FlightSuretyAppContract.deployed()
+    const instance = await FlightSuretyAppContract.deployed();
+    console.log(web3Provider);
+    
+    let response;
+    try {
+        response = await axios.post('http://localhost:3090/testConnectContract')
+        console.log("SUCCESS", response);
+    } catch(err) {
+        console.log("Sth failed by calling testConnectContract", err)
+    }
+    console.log("Should be done");
     dispatch({
         type: CONTRACT,
         payload: instance
@@ -74,16 +85,12 @@ export const registerOracles = (contract, metamaskAccount, callback) => async di
     
         const oracles = await axios.get('http://localhost:3090/getOracles');
         const ArrayOfOracles = oracles.data;
-        
-        
-
         class Oracle  {
             constructor(name, indexes) {
                 this.name = name;
                 this.indexes = indexes;
             }
         }
-
         class Indexes {
             constructor(firstIndex, secondIndex, thirdIndex) {
                 this.firstIndex = firstIndex;
@@ -91,10 +98,7 @@ export const registerOracles = (contract, metamaskAccount, callback) => async di
                 this.thirdIndex = thirdIndex;
             }
         }
-        console.log(ArrayOfOracles);
-
         //map function
-
         async function asyncForEach(array, callback) {
             for (let index = 0; index < array.length; index++) {
               await callback(array[index], index, array);
@@ -102,7 +106,6 @@ export const registerOracles = (contract, metamaskAccount, callback) => async di
           }
 
         let oraclesWithIndexes = [];
-        
         await asyncForEach(ArrayOfOracles, async (oracle) => {
             let indexes
             let response;
@@ -126,10 +129,10 @@ export const registerOracles = (contract, metamaskAccount, callback) => async di
                 console.log(err)
             }
             oraclesWithIndexes.push(oracleWithIndexes);
-            console.log(oracle);
+            
         });
-        console.log('Done');
-        console.log(oraclesWithIndexes);
+        console.log('Oracles are registered');
+        // not needed as implemented in server
         dispatch({
           type: ORACLES,
           payload: oraclesWithIndexes

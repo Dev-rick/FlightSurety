@@ -3,8 +3,9 @@
 // import {signup, signin} from './controllers/authentication';
 // import passportService from './services/passport';
 // import passport from 'passport';
-import oracles from './services/oracles';
+import oracles from './templates/oracles';
 import {registerOracle} from './controllers/registerOracle';
+import {testConnectContract} from './services/testConnectContract';
 
 // setting up the first route through which the request goes
 
@@ -22,6 +23,7 @@ export default function(app) {
     res.send(oracles);
   });
   app.post('/registerOracles', registerOracle);
+  app.post('/testConnectContract', testConnectContract);
   // when getting a file it must pass through requireAuth which holds the strategies
   // app.get('/', requireAuth, (req, res) => {
   //   res.send('Hy there');
