@@ -100,8 +100,10 @@ export const registerOracles = (contract, metamaskAccount, callback) => async di
 
         let oraclesWithIndexes = [];
         await asyncForEach(ArrayOfOracles, async (oracle) => {
-            let indexes
+            let indexes;
             let response;
+            let indexObject;
+            let oracleWithIndexes;
             try{
                 await contract.registerDefaultOracles(oracle, {from: metamaskAccount});
             } catch(err) {
@@ -109,11 +111,11 @@ export const registerOracles = (contract, metamaskAccount, callback) => async di
             }
             try {
                 indexes = await contract.getIndexOfOracle.call(oracle);
+                indexObject = new Indexes(indexes[0].words[0], indexes[1].words[0], indexes[2].words[0]);
+                oracleWithIndexes = new Oracle(oracle, indexObject);
             } catch(err) {
                 console.log("Some Error in the contract function getIndexOfOracle", err);
             }
-            let indexObject = new Indexes(indexes[0].words[0], indexes[1].words[0], indexes[2].words[0]);
-            let oracleWithIndexes = new Oracle(oracle, indexObject);
             try {
                 // axios rquest to post oracles
                 response = await axios.post('http://localhost:3090/registerOracles', oracleWithIndexes)

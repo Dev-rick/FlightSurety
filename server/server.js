@@ -6,14 +6,14 @@ import morgan from 'morgan';
 import router from './router'
 import mongoose from 'mongoose';
 import cors from 'cors';
-import web3 from './services/web3';
 import contracts from './services/contracts';
-import events from './services/events';
+import {subscribeLogEvent} from './services/subscribeToEvents';
+import {oracleRequest} from './services/events'
+
 
 contracts.setup()
 .then(() => {
-  events.subscribeLogEvent(contracts.list.FlightSuretyApp, 'Success')
-  events.subscribeLogEvent(contracts.list.FlightSuretyApp, 'OracleRequest')
+  subscribeLogEvent(contracts.list.FlightSuretyApp, oracleRequest)
 }).catch((err) => {
   console.log(err);
 }
