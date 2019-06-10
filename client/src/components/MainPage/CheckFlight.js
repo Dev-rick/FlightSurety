@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {Button, Form, Col, InputGroup} from 'react-bootstrap';
 
 import { connect } from 'react-redux';
-import * as actions from '../../actions/flightRegistration';
+
 
 class CheckFlight extends Component {
   constructor(...args) {
@@ -46,24 +46,25 @@ class CheckFlight extends Component {
       event.preventDefault();
       event.stopPropagation();
     } else {
-      this.registerFlight(event, this.clearForm)
+      this.checkFlight(event, this.clearForm)
     }
     this.setState({ validated: true });
   }
-  
+
+
   async checkFlight(event, callback) {
     event.preventDefault();
     console.log(this.state.form.flight);
       const flight = this.state.form.flight.toString();
       const airline = this.state.form.airline.toString();
-      const updatedTimestamp = Number(this.state.form.timestamp.value.split("-").join(""));
+      const updatedTimestamp = Number(this.state.form.timestamp.split("-").join(""));
       let result;
       console.log(this.props.contract);
       try { 
         console.log(this);
-        result = await this.props.contract.checkFlight.call(flight, airline, updatedTimestamp, {from: this.props.metamaskAccount}); 
-        
-        console.log("Flight Registered", result);
+       
+        result = await this.props.contract.fetchFlightStatus(airline, flight, updatedTimestamp, {from: this.props.metamaskAccount}); 
+        console.log("Flight Checked", result);
         if (result) {
             console.log(true);
             // lets appear form appear
@@ -94,7 +95,7 @@ class CheckFlight extends Component {
             </Form.Control.Feedback>
           </Form.Group>
           <Form.Group as={Col} md="6" controlId="airline">
-            <Form.Label>Ether to ensure</Form.Label>
+            <Form.Label>Airline Address</Form.Label>
             <Form.Control type="text" placeholder="0x18911376efeff48444d1323178bc9f5319686b75" value={this.state.form.airline} required />
             <Form.Control.Feedback type="invalid">
               Please provide a airline address.
@@ -103,7 +104,7 @@ class CheckFlight extends Component {
         </Form.Row>
         <Form.Row>
           <Form.Group as={Col} md="6" controlId="timestamp">
-            <Form.Label>Flight Number</Form.Label>
+            <Form.Label>Date</Form.Label>
             <Form.Control type="date" placeholder="201905041454" value={this.state.form.timestamp} required />
             <Form.Control.Feedback type="invalid">
               Please provide a valid timestamp.
@@ -117,7 +118,7 @@ class CheckFlight extends Component {
             feedback="You must agree before submitting."
           />
         </Form.Group>
-        <Button type="submit">Submit form</Button>
+        <Button type="submit">Check Flight</Button>
       </Form>
     )
   }
@@ -134,7 +135,7 @@ function mapStateToProps(state) {
 export default compose(
 //put in here all HOC you want to use:
 // null --> no state wired up here
-connect(mapStateToProps, actions),
+connect(mapStateToProps),
 
 )(CheckFlight);
 

@@ -3,6 +3,7 @@
 import React from 'react';
 import "../../css/flightList.css";
 import FlightRegistration from './FlightRegistration';
+import CheckFlight from './CheckFlight'
 import { Container, Row, Col } from 'react-bootstrap';
 
 export default () => {
@@ -15,6 +16,9 @@ export default () => {
       </Row>
       <Row className="justify-content-md-center">
           <FlightRegistration />
+      </Row>
+      <Row className="justify-content-md-center">
+          <CheckFlight />
       </Row>
     </div>
   )

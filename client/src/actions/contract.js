@@ -65,14 +65,7 @@ export const initContract = (web3Provider, callback) => async dispatch => {
     FlightSuretyAppContract.setProvider(web3Provider);
     const instance = await FlightSuretyAppContract.deployed();
     console.log(web3Provider);
-    
-    let response;
-    try {
-        response = await axios.post('http://localhost:3090/testConnectContract')
-        console.log("SUCCESS", response);
-    } catch(err) {
-        console.log("Sth failed by calling testConnectContract", err)
-    }
+
     console.log("Should be done");
     dispatch({
         type: CONTRACT,

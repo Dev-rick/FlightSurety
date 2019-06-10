@@ -6,7 +6,21 @@ import morgan from 'morgan';
 import router from './router'
 import mongoose from 'mongoose';
 import cors from 'cors';
+import web3 from './services/web3';
+import contracts from './services/contracts';
+import events from './services/events';
+
+contracts.setup()
+.then(() => {
+  events.subscribeLogEvent(contracts.list.FlightSuretyApp, 'Success')
+  events.subscribeLogEvent(contracts.list.FlightSuretyApp, 'OracleRequest')
+}).catch((err) => {
+  console.log(err);
+}
+)
+
 const app = express();
+  
 
 
 // DB Setup (connect mongoose to MonogDB localhost)
