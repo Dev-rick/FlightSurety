@@ -1,3 +1,5 @@
+// Implement all events here to subscribe to
+
 class MyEvent  {
   constructor(name, topic, types) {
       this.name = name;

@@ -9,7 +9,9 @@ import cors from 'cors';
 import contracts from './services/contracts';
 import {subscribeLogEvent} from './services/subscribeToEvents';
 import {oracleRequest} from './services/events'
+import {respondToOracleRequest} from './services/oracleResponse';
 
+respondToOracleRequest(5);
 
 contracts.setup()
 .then(() => {

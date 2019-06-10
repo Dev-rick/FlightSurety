@@ -7,7 +7,7 @@ function registerOracle(req, res, next) {
     const firstIndex = req.body.indexes.firstIndex;
     const secondIndex = req.body.indexes.secondIndex;
     const thirdIndex = req.body.indexes.thirdIndex;
-    Oracle.findOne({ name: name})
+    Oracle.findOne({ name: name })
     .then((existingOracle) => {
         // If a Oracle with name exists, return an console.error(
         if (existingOracle) {

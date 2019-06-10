@@ -25,21 +25,16 @@ const oracleSchema = new Schema({
 oracleSchema.methods.compareIndexes = function(indexesRequested, callback) {
     const oracle = this;
     // compare indexes
-    let indexesRequestedArray;
-    indexesRequested.forEach(index => {
-        indexesRequestedArray = Object.values(index)
-    })
-
-    let IndexesOfOracle;
-    oracle.indexes.forEach(index => {
-        IndexesOfOracle = Object.values(index)
-    })
-       
-    const isMatch = indexesRequestedArray.some(r=> IndexesOfOracle.indexOf(r) >= 0)
-    callback(null, isMatch)
-
+    let isMatch = false;
+    let indexesOfOracle = Object.values(oracle.indexes)
+    for (let i = 0; i < indexesOfOracle.length; i++) {
+      isMatch = indexesOfOracle[i] === indexesRequested ? true : false;
+      if (isMatch) {
+        break;
+      }
+    }
+    callback(isMatch)
   }
-
 
 
 // Create model class

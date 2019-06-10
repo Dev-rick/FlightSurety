@@ -1,11 +1,10 @@
-const web3 = require('./web3')
-
+import web3 from './web3';
+import {respondToOracleRequest} from './oracleResponse';
 import { ethers } from 'ethers';
 
-const subscribedEvents = {}
 
 const subscribeLogEvent =  (contract, event) => {
-  const subscription = web3.eth.subscribe('logs', {
+  web3.eth.subscribe('logs', {
     address: contract.options.address,
     topics: event.topic
   }, (error, result) => {
@@ -15,14 +14,13 @@ const subscribeLogEvent =  (contract, event) => {
           result.data
         );
         console.log(decodedData);
-        return decodedData;
+        let indexRequested = decodedData[0];
+        respondToOracleRequest(indexRequested);
+        return;
     }
     console.error(error);
   })
 
-  subscribedEvents[event.name] = subscription
-
-  console.log(event);
   console.log(`subscribed to event '${event.name}' of contract '${contract.options.address}' `)
 
 }
