@@ -22,7 +22,8 @@ const generateRandomResponse = () => {
     return arrayOfResponses[randomindex]
 } 
 
-const respondToOracleRequest = (requestedIndex) => {
+const respondToOracleRequest = (decodedData) => {
+    let requestedIndex = decodedData[0];
     Oracle.find()
     .then((res) => {
         res.forEach((oracle) => {

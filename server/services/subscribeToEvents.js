@@ -1,5 +1,5 @@
 import web3 from './web3';
-import {respondToOracleRequest} from './oracleResponse';
+
 import { ethers } from 'ethers';
 
 
@@ -14,8 +14,7 @@ const subscribeLogEvent =  (contract, event) => {
           result.data
         );
         console.log(decodedData);
-        let indexRequested = decodedData[0];
-        respondToOracleRequest(indexRequested);
+        event.method(decodedData);
         return;
     }
     console.error(error);

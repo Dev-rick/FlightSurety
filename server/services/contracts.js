@@ -1,7 +1,7 @@
 const web3 = require('./web3')
 const FlightSuretyApp = require('../../client/src/truffle-deployment/build/contracts/FlightSuretyApp.json')
 
-let ethAccount;
+
 const list = {}
 
 const setupFlightSuretyApp = async (networkId) => {
@@ -11,10 +11,7 @@ const setupFlightSuretyApp = async (networkId) => {
         FlightSuretyApp.abi,
         deployedAddress
     )
-    web3.eth.getAccounts().then(e => {
-        ethAccount = e[0]; 
-        console.log(ethAccount);
-    })
+
   }
 
   const setup = async () => {
