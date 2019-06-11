@@ -116,13 +116,13 @@ export const registerOracles = (contract, metamaskAccount, callback) => async di
             } catch(err) {
                 console.log("Some Error in the contract function getIndexOfOracle", err);
             }
-            try {
-                // axios rquest to post oracles
-                response = await axios.post('http://localhost:3090/registerOracles', oracleWithIndexes)
-                console.log("SUCCESS", response);
-            } catch(err) {
-                console.log(err)
-            }
+            // try {
+            //     // axios rquest to post oracles
+            //     response = await axios.post('http://localhost:3090/registerOracles', oracleWithIndexes)
+            //     console.log("SUCCESS", response);
+            // } catch(err) {
+            //     console.log(err)
+            // }
             oraclesWithIndexes.push(oracleWithIndexes);
             
         });

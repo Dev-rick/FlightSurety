@@ -2,6 +2,8 @@
 // sites requiring authentication
 
 import Oracle from '../models/oracle';
+import {makeTransaction} from './makeTransaction';
+import { decode } from 'ethers/utils/base64';
 
 const responses = {
     STATUS_CODE_UNKNOWN : 0,
@@ -23,16 +25,20 @@ const generateRandomResponse = () => {
 } 
 
 const respondToOracleRequest = (decodedData) => {
+    console.log(decodedData);
     let requestedIndex = decodedData[0];
     Oracle.find()
     .then((res) => {
         res.forEach((oracle) => {
-            console.log(oracle);
             oracle.compareIndexes(requestedIndex, (res) => {
                 console.log(generateRandomResponse());
                 let randomResponse = generateRandomResponse();
                 console.log(randomResponse);
+                if (res) {
+                    makeTransaction(decodedData, randomResponse);
+                }
                 // SEND INFORMATION TO THE CLIENT SO METAMASK CAN ACCEPT IT
+
             })
         })
     })

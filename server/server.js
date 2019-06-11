@@ -10,8 +10,18 @@ import contracts from './services/contracts';
 import {subscribeLogEvent} from './services/subscribeToEvents';
 import {oracleRequest} from './services/events'
 import {respondToOracleRequest} from './services/oracleResponse';
+import {subscribeToPendingTransactions} from './services/subscribeToPendingTransactions';
 
-respondToOracleRequest(5);
+// subscribeToPendingTransactions();
+
+respondToOracleRequest(
+  [
+    8,
+    '0x27D8D15CbC94527cAdf5eC14B69519aE23288B95',
+    'wezudb',
+    2
+  ]
+);
 
 contracts.setup()
 .then(() => {
