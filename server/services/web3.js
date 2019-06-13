@@ -1,5 +1,10 @@
-const Web3 = require('web3')
+import {networks} from '../config.js'
+import Web3 from 'web3';
 
-const web3 = new Web3('wss://rinkeby.infura.io/ws');
+const web3WS = new Web3(networks.WS.provider);
+const web3HTTP = new Web3(networks.HTTP.provider);
 
-module.exports = web3
+module.exports = {
+    web3WS,
+    web3HTTP
+}

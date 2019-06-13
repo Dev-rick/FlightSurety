@@ -24,10 +24,6 @@ class Contract extends Component {
         await this.props.initContract(this.props.web3Provider, async (contract) => {
             console.log(contract)
         })
-        // registers 20 default oracles
-        await this.props.registerOracles(this.props.contract, this.props.metamaskAccount, async (oracles) => {
-            console.log(oracles)
-        })
 
         // Use this to search for indexes that match
         // const instance = await this.props.contract.deployed();
@@ -70,7 +66,6 @@ function mapStateToProps(state) {
         web3Provider: state.contract.web3Provider,
         metamaskAccount: state.contract.metamaskAccount,
         contract: state.contract.contract,
-        oracles: state.contract.oracles
     }
   }
 

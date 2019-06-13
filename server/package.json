@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.4.5",
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-es2017": "^7.0.0-beta.53",
     "@babel/register": "^7.4.4",

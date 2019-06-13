@@ -3,8 +3,7 @@
 // import {signup, signin} from './controllers/authentication';
 // import passportService from './services/passport';
 // import passport from 'passport';
-import oracles from './templates/oracles';
-import {registerOracle} from './controllers/registerOracle';
+
 
 
 // setting up the first route through which the request goes
@@ -19,10 +18,6 @@ import {registerOracle} from './controllers/registerOracle';
 // const requireSignin = passport.authenticate('local', {session: false});
 
 export default function(app) {
-  app.get('/getOracles', (req, res) => {
-    res.send(oracles);
-  });
-  app.post('/registerOracles', registerOracle);
   // when getting a file it must pass through requireAuth which holds the strategies
   // app.get('/', requireAuth, (req, res) => {
   //   res.send('Hy there');

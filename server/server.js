@@ -6,79 +6,71 @@ import morgan from 'morgan';
 import router from './router'
 import mongoose from 'mongoose';
 import cors from 'cors';
-import contracts from './services/contracts';
-import {subscribeLogEvent} from './services/subscribeToEvents';
-import {oracleRequest} from './services/events'
-import {respondToOracleRequest} from './services/oracleResponse';
-import {subscribeToPendingTransactions} from './services/subscribeToPendingTransactions';
 
-// subscribeToPendingTransactions();
+import {
+  setUpContracts,
+  subscribeToEvent,
+  registerOracleInContract,
+  // makeTransaction,
+  // respondToOracleRequest,
+  // setupWeb3
+} from './services/index';
 
-respondToOracleRequest(
-  [
-    8,
-    '0x27D8D15CbC94527cAdf5eC14B69519aE23288B95',
-    'wezudb',
-    2
-  ]
-);
-
-contracts.setup()
-.then(() => {
-  subscribeLogEvent(contracts.list.FlightSuretyApp, oracleRequest)
-}).catch((err) => {
-  console.log(err);
-}
-)
-
-const app = express();
+const serverSetup = async () => {
   
+  const contracts = await setUpContracts();
+  subscribeToEvent(contracts.listOfContractsOnWS);
+  registerOracleInContract(contracts.listOfContractsOnHTTP);
 
+  // const app = express();
 
-// DB Setup (connect mongoose to MonogDB localhost)
+  // // DB Setup (connect mongoose to MonogDB localhost)
 
-const db = ('mongodb://localhost:auth/auth');
+  // const db = ('mongodb://localhost:auth/auth');
 
-mongoose.connect(db, { useNewUrlParser: true })
-.then(() => console.log('MongoDB Connected...'))
-.catch(err => console.log(err));
+  // mongoose.connect(db, { useNewUrlParser: true })
+  // .then(() => console.log('MongoDB Connected...'))
+  // .catch(err => console.log(err));
 
-// App Setup --> to get express work the way we want it to
+  // // App Setup --> to get express work the way we want it to
 
-// morgan and bodyparser are 2 middlewares in express
-// this is ue to the app.use()
+  // // morgan and bodyparser are 2 middlewares in express
+  // // this is ue to the app.use()
 
-//middlewares:
+  // //middlewares:
 
-// morgan is just about login incomining requests (use for debugging)
-app.use(morgan('combined'));
-// use cors to enable requests from other domains which would be normally be blocked
-// by CORS implemented by the browser
+  // // morgan is just about login incomining requests (use for debugging)
+  // app.use(morgan('combined'));
+  // // use cors to enable requests from other domains which would be normally be blocked
+  // // by CORS implemented by the browser
 
-const whitelist = ['http://localhost:3000', 'http://localhost:3090']
+  // const whitelist = ['http://localhost:3000', 'http://localhost:3090']
 
-var corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  }
+  // var corsOptions = {
+  //   origin: function (origin, callback) {
+  //     if (whitelist.indexOf(origin) !== -1) {
+  //       callback(null, true)
+  //     } else {
+  //       callback(new Error('Not allowed by CORS'))
+  //     }
+  //   }
+  // }
+
+  // app.use(cors(corsOptions));
+
+  // // all incoming requests are parsed as it was JSON
+  // app.use(bodyParser.json({ type: '*/*' }));
+
+  // // give access tp router.js
+  // router(app)
+
+  // // Server Setup --> to get out express application talk to the outside world
+
+  // // if there is a port defined then take this when not take 3090
+  // const port = process.env.PORT || 3090;
+  // const server = http.createServer(app);
+  // server.listen(port);
+  // console.log('Server listening to port', port);
 }
 
-app.use(cors(corsOptions));
-
-// all incoming requests are parsed as it was JSON
-app.use(bodyParser.json({ type: '*/*' }));
-
-// give access tp router.js
-router(app)
-
-// Server Setup --> to get out express application talk to the outside world
-
-// if there is a port defined then take this when not take 3090
-const port = process.env.PORT || 3090;
-const server = http.createServer(app);
-server.listen(port);
-console.log('Server listening to port', port);
+serverSetup();

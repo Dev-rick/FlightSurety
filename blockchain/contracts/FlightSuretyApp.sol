@@ -32,6 +32,7 @@ contract FlightSuretyApp {
     FlightSuretyData flightSuretyData;
 
     event Success(string topic);
+    
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -244,6 +245,9 @@ contract FlightSuretyApp {
     // Key = hash(index, flight, timestamp)
     mapping(bytes32 => ResponseInfo) private oracleResponses;
 
+    //Event fired when an oracle is registered
+    event DefaultOracleRegistered(address oracle, uint8 firstIndex, uint8 secondIndes, uint8 thirdIndex);
+
     // Event fired each time an oracle submits a response
     event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status);
 
@@ -258,32 +262,15 @@ contract FlightSuretyApp {
     // Register default oracles with the contract
     function registerDefaultOracles(address _oracle)
     external
-    payable
     requireOperational
     {
         // No registration fee required
         uint8[3] memory indexes = generateIndexes(_oracle);
-
         oracles[_oracle] = Oracle({
             isRegistered: true,
             indexes: indexes
         });
-    }
-
-    function getIndexOfOracle(address _oracle)
-    public
-    view
-        returns(
-        uint8 firstIndexesForOracle,
-        uint8 secondIndexesForOracle,
-        uint8 thirdIndexesForOracle
-    )
-    {
-      return(
-        firstIndexesForOracle = oracles[_oracle].indexes[0],
-        secondIndexesForOracle = oracles[_oracle].indexes[1],
-        thirdIndexesForOracle = oracles[_oracle].indexes[2]
-    );
+        emit DefaultOracleRegistered(_oracle, indexes[0], indexes[1], indexes[2]);
     }
 
     // Register new oracle

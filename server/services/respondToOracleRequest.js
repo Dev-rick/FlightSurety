@@ -3,7 +3,6 @@
 
 import Oracle from '../models/oracle';
 import {makeTransaction} from './makeTransaction';
-import { decode } from 'ethers/utils/base64';
 
 const responses = {
     STATUS_CODE_UNKNOWN : 0,
@@ -35,15 +34,13 @@ const respondToOracleRequest = (decodedData) => {
                 let randomResponse = generateRandomResponse();
                 console.log(randomResponse);
                 if (res) {
-                    makeTransaction(decodedData, randomResponse);
+                    const data = myContract.methods.submitOracleResponse(decodedData[0], decodedData[1], decodedData[2], decodedData[3], randomResponse).encodeABI()
+                    makeTransaction(data);
                 }
                 // SEND INFORMATION TO THE CLIENT SO METAMASK CAN ACCEPT IT
-
             })
         })
     })
 }
 
-module.exports = {
-    respondToOracleRequest
-}
+module.exports = respondToOracleRequest;
