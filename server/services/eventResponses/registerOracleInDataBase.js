@@ -1,6 +1,6 @@
 import Oracle from  '../../models/oracle';
 
-module.exports = (decodedData) => {
+module.exports = (contract, decodedData) => {
     Oracle.findOne({ name: decodedData[0] })
     .then((existingOracle) => {
         // If a Oracle with name exists, return an console.error(

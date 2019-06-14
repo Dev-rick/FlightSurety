@@ -22,8 +22,10 @@ const oracleSchema = new Schema({
 
 
 // whenever a user object is created it has access to these functions
-oracleSchema.methods.compareIndexes = function(indexesRequested, callback) {
+// don't use arrow function as the this keyword will not work
+oracleSchema.methods.compareIndexes = async function(indexesRequested) {
     const oracle = this;
+    console.log(oracle);
     // compare indexes
     let isMatch = false;
     let indexesOfOracle = Object.values(oracle.indexes)
@@ -33,7 +35,7 @@ oracleSchema.methods.compareIndexes = function(indexesRequested, callback) {
         break;
       }
     }
-    callback(isMatch)
+    return isMatch;
   }
 
 

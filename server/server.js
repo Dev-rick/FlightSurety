@@ -79,6 +79,6 @@ const serverSetup = async (callback) => {
 
 serverSetup( async ()=> {
   const contracts = await setUpContracts();
-  subscribeToEvent(contracts.listOfContractsOnWS);
-  // registerOraclesInContract(contracts.listOfContractsOnHTTP);
+  subscribeToEvent(contracts);
+  // registerOraclesInContract(contracts);
 });

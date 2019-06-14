@@ -1,7 +1,7 @@
 import TruffleContract from 'truffle-contract';
 import Web3 from 'web3';
 import { CONTRACT, METAMASK_ACCOUNT, WEB3_PROVIDER} from './types';
-import FlightSuretyApp from '../../../blockchain/build/contracts/FlightSuretyApp';
+import FlightSuretyApp from '../blockchain/build/contracts/FlightSuretyApp';
 
 //signup is an action creator
 // callback marked with () in the SignUp component

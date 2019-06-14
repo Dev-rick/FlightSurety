@@ -1,0 +1,4 @@
+Next steps:
+
+# rebuild the same logic to watch event on the client side
+# edit the process flight function in the smart contract

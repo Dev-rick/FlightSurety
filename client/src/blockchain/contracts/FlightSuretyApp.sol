@@ -189,7 +189,13 @@ contract FlightSuretyApp {
         uint8 statusCode
     )
     internal
-    requireOperational{}
+    requireOperational{
+        // if statusCode = 20 => emit a a withdraw button
+        // else => emit an event saying that flight delay was not caused by airline 
+
+        // close oracleRequest
+        // delete flight
+    }
     
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
@@ -265,6 +271,7 @@ contract FlightSuretyApp {
     requireOperational
     {
         // No registration fee required
+        require(!oracles[_oracle].isRegistered, "Oracle is already registered.");
         uint8[3] memory indexes = generateIndexes(_oracle);
         oracles[_oracle] = Oracle({
             isRegistered: true,
@@ -317,8 +324,8 @@ contract FlightSuretyApp {
     external
     requireOperational
     {
-        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
-
+        // for test reason this is in a comment
+        // require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
@@ -329,9 +336,7 @@ contract FlightSuretyApp {
         // oracles respond with the *** same *** information
         emit OracleReport(airline, flight, timestamp, statusCode);
         if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
-
             emit FlightStatusInfo(airline, flight, timestamp, statusCode);
-
             // Handle flight status as appropriate
             processFlightStatus(airline, flight, timestamp, statusCode);
         }

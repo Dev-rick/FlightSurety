@@ -2,9 +2,9 @@
 // sites requiring authentication
 
 import Oracle from '../../models/oracle';
-import makeTransaction from './makeTransaction';
-import asyncForEach from '../helpers/asynForEach';
-import config from '../config.js';
+import makeTransaction from '../makeTransaction';
+import asyncForEach from '../../helpers/asynForEach';
+import config from '../../config.js';
 
 const responses = {
     STATUS_CODE_UNKNOWN : 0,
@@ -25,27 +25,27 @@ const generateRandomResponse = () => {
     return arrayOfResponses[randomindex]
 } 
 
-module.exports = (decodedData) => {
+module.exports = (contract, decodedData) => {
     // define the contract to send the information to
     const requestedIndex = decodedData[0];
-    const myContract = contracts[0];
+    const myContract = contract;
     const toAddress = myContract.options.address;
     // define the account from which it should send
     const fromAccount = config.MetaMaskWallet.accounts[0];
     Oracle.find()
     .then((oracles) => {
-        asyncForEach(oracles, (oracle) => {
-            oracle.compareIndexes(requestedIndex, async (isMatch) => {
-                let randomResponse = generateRandomResponse();
-                if (isMatch) {
-                    const data = myContract.methods.submitOracleResponse(decodedData[0], decodedData[1], decodedData[2], decodedData[3], randomResponse);
-                    try{
-                        await makeTransaction(data, fromAccount, toAddress);
-                    } catch(err) {
-                        console.log(err)
-                    }
+        asyncForEach(oracles, async (oracle) => {
+            console.log(oracle);
+            const isMatch = await oracle.compareIndexes(requestedIndex) 
+            let randomResponse = generateRandomResponse();
+            if (isMatch) {
+                const data = myContract.methods.submitOracleResponse(decodedData[0], decodedData[1], decodedData[2], decodedData[3], randomResponse);
+                try{
+                    await makeTransaction(data, fromAccount, toAddress, 490000);
+                } catch(err) {
+                    console.log(err)
                 }
-            })
+            }
         })
     })
 }

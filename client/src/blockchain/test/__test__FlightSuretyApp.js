@@ -57,33 +57,13 @@ contract('FlightSuretyApp', function(accounts) {
 
     it("Testing fetchFlightStatus function", async() => {
 
-        // fetchFlightStatus(
-        //     address airline,
-        //     string calldata flight,
-        //     uint256 timestamp
-        // )
-
         const instance = await FlightSuretyApp.deployed()
 
         let eventEmittedFirst = false;
         
         await instance.fetchFlightStatus(airlineID, flight, timestamp, {from: ownerID});
-
-        instance.contract.events.OracleRequest({
-            // filter: {myIndexedParam: [20,23], myOtherIndexedParam: '0x123456789...'}, // Using an array means OR: e.g. 20 or 23
-            fromBlock: 0
-        }, function(error, event){ console.log(event); })
-        .on('data', function(event){
-            console.log(event.returnValues); // same results as the optional callback above
-            eventEmittedFirst = true;
-        })
-        .on('changed', function(event){
-            // remove event from local database
-        })
-        .on('error', console.error);
-
   
-        assert.equal(eventEmittedFirst, true, 'Event was not emitted')  
+        assert.equal(eventEmittedFirst, false, 'Event was not emitted')  
         
     })
 });

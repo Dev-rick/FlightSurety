@@ -3,6 +3,9 @@ import {ethers} from 'ethers';
 import config from '../config';
 
 
+// only one contract is needed!!!
+// 2 web3 are needed!!
+
 const subscribe = (contract, event) => {
   web3WS.eth.subscribe('logs', {
     address: contract.options.address,
@@ -15,7 +18,7 @@ const subscribe = (contract, event) => {
         );
         console.log("Catched event ", event)
         const method = require(`./eventResponses/${event.method}`)
-        method(decodedData);
+        method(contract, decodedData);
         return;
     }
     console.error(error);

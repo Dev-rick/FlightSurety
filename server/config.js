@@ -2,9 +2,9 @@ import HDWalletProvider from 'truffle-hdwallet-provider';
 import secrets from './secrets';
 // import registerOracleInDataBase from './services/eventResponses/registerOracleInDataBase';
 // import respondToOracleRequest from './services/respondToOracleRequest';
+
+
 const devMode = false;
-
-
 //==================devMode======================//
 
 // set devMode = true
@@ -12,8 +12,9 @@ const devMode = false;
 // open a terminal and run: $ ganache-cli -m "spirit supply whale amount human item harsh scare congress discover talent hamster"
 // open a terminal in your blockchain directory and run: $ truffle migrate --reset
 // get from there the networkId
-const networkIdDev = 1560496772370;
+const networkIdDev = 1560520817919;
 // open a terminal in your server directory and run: $ npm run dev
+// in the terminal in your blockchain directory run: $ truffle test
 
 //==================liveMode=====================//
 
@@ -31,7 +32,7 @@ const developmentAccount = {
 const config = {
     contractsConfig : [{
         name : 'FlightSuretyApp',
-        path : '../blockchain/build/contracts/',
+        path : '../client/src/blockchain/build/contracts/',
         eventsToWatch : [{
             name: 'OracleRequest',
             topic: ['0x3ed01f2c3fc24c6b329d931e35b03e390d23497d22b3f90e15b600343e93df11'],
@@ -49,7 +50,7 @@ const config = {
     }],
     networks : {
         WS : {
-            provider: devMode ? 'ws://localhost:8545': 'wss://rinkeby.infura.io/ws',
+            provider: devMode ? 'ws://127.0.0.1:8545': 'wss://rinkeby.infura.io/ws',
             chainId : devMode ? networkIdDev : 4
         },
         HTTP : {
