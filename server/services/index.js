@@ -1,20 +1,9 @@
 import setUpContracts from './setUpContracts';
-import {subscribeToEvent} from './subscribeToEvent';
-import {registerOracleInContract, registerOracleInDataBase} from './registerOracles';
-// import makeTransaction from './makeTransaction';
-import respondToOracleRequest from './respondToOracleRequest';
+import subscribeToEvent from './subscribeToEvent';
+import registerOraclesInContract from './registerOraclesInContract';
 
 module.exports = {
     setUpContracts,
     subscribeToEvent,
-    respondToOracleRequest,
-    registerOracleInContract,
-    registerOracleInDataBase
-    // registerOracles,
-    // makeTransaction,
-    // setupWeb3
+    registerOraclesInContract,
 }
-
-
-
-//// SETTIN WS contract and http list

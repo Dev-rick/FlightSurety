@@ -1,4 +1,3 @@
-
 const oracles = [
 "0x9137dc4de37d28802ff9e5ee3fe982f1ca2e5faa",
 "0x18911376efeff48444d1323178bc9f5319686b75",

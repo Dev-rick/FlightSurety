@@ -1,8 +1,8 @@
 import {web3HTTP} from './web3'
-import {networks} from '../config'
+import config from '../config'
 import { reject, resolve } from 'any-promise';
 
-const makeTransaction = async (data, fromAccount, toAddress, gas = 2015702, value = null) => {
+export default async (data, fromAccount, toAddress, gas = 2015702, value = null) => {
 
   const fromAddress = fromAccount.address;
   const txCount = await web3HTTP.eth.getTransactionCount(fromAddress);
@@ -19,19 +19,19 @@ const makeTransaction = async (data, fromAccount, toAddress, gas = 2015702, valu
     // this encodes the ABI of the method and the arguements
     data: data.encodeABI(),
     // chain
-    chainId: networks.HTTP.chainId
+    chainId: config.networks.HTTP.chainId
   };
-
   const signedTx = await web3HTTP.eth.accounts.signTransaction(tx, fromAccount.privateKey);
-  console.log(signedTx);
-  return new Promise(resolve => {
+  console.log("Sending transaction ...");
+  return new Promise((resolve, reject) => {
     web3HTTP.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction)
     .once('confirmation', (confirmationNumber, receipt) => {
-      console.log("Following transaction completed", receipt.logs.transactionHash)
+      console.log("Following transaction completed", receipt.logs[0].transactionHash)
       resolve()
     })
-    .on('error', console.error); // If a out of gas error, the second parameter is the receipt.
+    .on('error', (err) => {
+      reject(err);
+    })  
   })
 }
 
-module.exports = makeTransaction;

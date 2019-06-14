@@ -1,6 +1,7 @@
 import {web3WS} from './web3';
 import {ethers} from 'ethers';
-import {contractsConfig} from '../config';
+import config from '../config';
+
 
 const subscribe = (contract, event) => {
   web3WS.eth.subscribe('logs', {
@@ -12,9 +13,9 @@ const subscribe = (contract, event) => {
           event.types,
           result.data
         );
-        console.log(decodedData);
-        console.log(event)
-        event.method(decodedData);
+        console.log("Catched event ", event)
+        const method = require(`./eventResponses/${event.method}`)
+        method(decodedData);
         return;
     }
     console.error(error);
@@ -29,15 +30,11 @@ const subscribe = (contract, event) => {
 //     });
 // }
 
-const subscribeToEvent = async (contracts) => {
+export default async (contracts) => {
   for (let i = 0; i < contracts.length; i++) {
-    for (let n = 0; n < contractsConfig[i].eventsToWatch.length; n++) {
-      subscribe(contracts[i], contractsConfig[i].eventsToWatch[n])
+    for (let n = 0; n < config.contractsConfig[i].eventsToWatch.length; n++) {
+      subscribe(contracts[i], config.contractsConfig[i].eventsToWatch[n])
     }
   }
 }
 
-module.exports = {
-  subscribeToEvent
-  // unsubscribeEvent
-}

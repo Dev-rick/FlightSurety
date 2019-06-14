@@ -10,67 +10,75 @@ import cors from 'cors';
 import {
   setUpContracts,
   subscribeToEvent,
-  registerOracleInContract,
+  registerOraclesInContract,
   // makeTransaction,
   // respondToOracleRequest,
   // setupWeb3
 } from './services/index';
 
-const serverSetup = async () => {
+const serverSetup = async (callback) => {
   
-  const contracts = await setUpContracts();
-  subscribeToEvent(contracts.listOfContractsOnWS);
-  registerOracleInContract(contracts.listOfContractsOnHTTP);
+ 
+  
+  const app = express();
 
-  // const app = express();
+  // DB Setup (connect mongoose to MonogDB localhost)
 
-  // // DB Setup (connect mongoose to MonogDB localhost)
+  const db = ('mongodb://localhost:oracles/oracles');
+  
+  try {
+    await mongoose.connect(db, { useNewUrlParser: true })
+    mongoose.set('useCreateIndex', true);
+    console.log('MongoDB Connected...')
+  } catch(err){
+    console.log(err)
+  }
 
-  // const db = ('mongodb://localhost:auth/auth');
+  
+  // App Setup --> to get express work the way we want it to
+  
+  // morgan and bodyparser are 2 middlewares in express
+  // this is ue to the app.use()
+  
+  //middlewares:
+  
+  // morgan is just about login incomining requests (use for debugging)
+  app.use(morgan('combined'));
+  // use cors to enable requests from other domains which would be normally be blocked
+  // by CORS implemented by the browser
+  
+  const whitelist = ['http://localhost:3000', 'http://localhost:3090']
+  
+  var corsOptions = {
+    origin: function (origin, callback) {
+      if (whitelist.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    }
+  }
+  
+  app.use(cors(corsOptions));
+  
+  // all incoming requests are parsed as it was JSON
+  app.use(bodyParser.json({ type: '*/*' }));
+  
+  // give access tp router.js
+  router(app)
 
-  // mongoose.connect(db, { useNewUrlParser: true })
-  // .then(() => console.log('MongoDB Connected...'))
-  // .catch(err => console.log(err));
+  // Server Setup --> to get out express application talk to the outside world
 
-  // // App Setup --> to get express work the way we want it to
-
-  // // morgan and bodyparser are 2 middlewares in express
-  // // this is ue to the app.use()
-
-  // //middlewares:
-
-  // // morgan is just about login incomining requests (use for debugging)
-  // app.use(morgan('combined'));
-  // // use cors to enable requests from other domains which would be normally be blocked
-  // // by CORS implemented by the browser
-
-  // const whitelist = ['http://localhost:3000', 'http://localhost:3090']
-
-  // var corsOptions = {
-  //   origin: function (origin, callback) {
-  //     if (whitelist.indexOf(origin) !== -1) {
-  //       callback(null, true)
-  //     } else {
-  //       callback(new Error('Not allowed by CORS'))
-  //     }
-  //   }
-  // }
-
-  // app.use(cors(corsOptions));
-
-  // // all incoming requests are parsed as it was JSON
-  // app.use(bodyParser.json({ type: '*/*' }));
-
-  // // give access tp router.js
-  // router(app)
-
-  // // Server Setup --> to get out express application talk to the outside world
-
-  // // if there is a port defined then take this when not take 3090
-  // const port = process.env.PORT || 3090;
-  // const server = http.createServer(app);
-  // server.listen(port);
-  // console.log('Server listening to port', port);
+  // if there is a port defined then take this when not take 3090
+  const port = process.env.PORT || 3090;
+  const server = http.createServer(app);
+  server.listen(port);
+  console.log('Server listening to port', port);
+  callback();
 }
 
-serverSetup();
+serverSetup( async ()=> {
+  const contracts = await setUpContracts();
+  subscribeToEvent(contracts.listOfContractsOnWS);
+  // registerOraclesInContract(contracts.listOfContractsOnHTTP);
+});
