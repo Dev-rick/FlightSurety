@@ -35,13 +35,16 @@ module.exports = (contract, decodedData) => {
     Oracle.find()
     .then((oracles) => {
         asyncForEach(oracles, async (oracle) => {
-            console.log(oracle);
             const isMatch = await oracle.compareIndexes(requestedIndex) 
             let randomResponse = generateRandomResponse();
             if (isMatch) {
+                // Fixing randomrsponse for text purposes
+                randomResponse = 20;
                 const data = myContract.methods.submitOracleResponse(decodedData[0], decodedData[1], decodedData[2], decodedData[3], randomResponse);
                 try{
-                    await makeTransaction(data, fromAccount, toAddress, 490000);
+                    const logs = await makeTransaction(data, fromAccount, toAddress, 500000);
+                    console.log("Response from oracle:", logs)
+                    return;
                 } catch(err) {
                     console.log(err)
                 }

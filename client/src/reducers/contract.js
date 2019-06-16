@@ -1,17 +1,14 @@
 // we import direct the action from the action creator
-import { WEB3_PROVIDER, METAMASK_ACCOUNT, CONTRACT} from '../actions/types';
+import { WEB3_PROVIDER, METAMASK_ACCOUNT, CONTRACT, WEB3, ETHERS} from '../actions/types';
 
 
 // here we define the state located in the store
 const INITIAL_STATE = {
     web3Provider: null,
+    web3: null,
     metamaskAccount: null,
     contract: {},
-    owner: null,
-    users: [],
-    airlines: [],
-    admins: [],
-    passengers: []
+    ethers: null
 }
 
 
@@ -23,6 +20,10 @@ export default function(state = INITIAL_STATE, action) {
       return {...state, metamaskAccount: action.payload}
     case CONTRACT:
       return {...state, contract: action.payload}
+    case WEB3:
+      return {...state, web3: action.payload}
+    case ETHERS:
+      return {...state, ethers: action.payload}
     default:
       return state;
   }

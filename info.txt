@@ -1,4 +1,12 @@
 Next steps:
 
-# rebuild the same logic to watch event on the client side
-# edit the process flight function in the smart contract
+# make a new component for airline registration and make them store ethers
+# passenger get some of that money when he can wiithdraw  (1.5 multiple)
+
+
+
+# truffle migrate to see if new method.(value)(argument1) works
+
+# no money secured error from data contract still appaers   ! 
+# problem with sending money to the data contract or saving money in there...
+# can we not send money from one contract to another?

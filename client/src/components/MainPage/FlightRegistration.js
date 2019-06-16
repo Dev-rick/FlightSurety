@@ -1,7 +1,8 @@
 import { compose } from 'redux';
 import React, {Component} from 'react';
-import {Button, Form, Col, InputGroup} from 'react-bootstrap';
+import {Container, Button, Form, Col, InputGroup} from 'react-bootstrap';
 
+import LoadingFlightRegModal from './LoadingFlightRegModal';
 import { connect } from 'react-redux';
 
 class FlightRegistration extends Component {
@@ -14,7 +15,8 @@ class FlightRegistration extends Component {
         airline: "",
         timestamp: "",
         amount: ""
-       }
+       },
+       waitingModal: false
     };
   }
 
@@ -38,7 +40,8 @@ class FlightRegistration extends Component {
         airline: "",
         timestamp: "",
         amount: ""
-       }
+       },
+       waitingModal: false
     });
   }
 
@@ -55,18 +58,28 @@ class FlightRegistration extends Component {
   
   async registerFlight(event, callback) {
     event.preventDefault();
+    this.setState({
+      waitingModal: true
+    })
     console.log(this.state.form.flight);
       const flight = this.state.form.flight.toString();
       const airline = this.state.form.airline.toString();
       console.log(this.state.form.timestamp);
       debugger;
       const updatedTimestamp = Number(this.state.form.timestamp.split("-").join(""));
-      const amount = Number(this.state.form.amount);
+      // const amount = Number(this.state.form.amount) * 1000000000000000000;
+      const ether = this.props.web3.utils.toWei(this.state.form.amount, "ether");
       let result;
       console.log(this.props.contract);
       try { 
         console.log(this);
-        result = await this.props.contract.registerFlight(flight, airline, updatedTimestamp, amount, {from: this.props.metamaskAccount, value: amount}); 
+        result = await this.props.contract.registerFlight(
+          flight, 
+          airline, 
+          updatedTimestamp, 
+          // amount, 
+          {from: this.props.metamaskAccount, value: ether}
+          ); 
         console.log("Flight Registered", result);
       } catch(err) {
         console.log(err.message);
@@ -77,6 +90,8 @@ class FlightRegistration extends Component {
   render() {
     const { validated } = this.state;
     return (
+      <Container>
+
       <Form
         noValidate
         validated={validated}
@@ -126,6 +141,10 @@ class FlightRegistration extends Component {
         </Form.Group>
         <Button type="submit">Submit form</Button>
       </Form>
+      <LoadingFlightRegModal
+            show={this.state.waitingModal}
+          />
+      </Container>
     )
   }
 }
@@ -134,7 +153,8 @@ class FlightRegistration extends Component {
 function mapStateToProps(state) {
   return { 
       metamaskAccount: state.contract.metamaskAccount,
-      contract: state.contract.contract
+      contract: state.contract.contract,
+      web3: state.contract.web3
   }
 }
 

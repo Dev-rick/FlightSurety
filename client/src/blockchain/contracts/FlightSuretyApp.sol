@@ -6,7 +6,6 @@ pragma solidity ^0.5.8;
 
 import "./SafeMath.sol";
 
-
 /************************************************** */
 /* FlightSurety Smart Contract                      */
 /************************************************** */
@@ -18,21 +17,13 @@ contract FlightSuretyApp {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
-    // Flight status codees
-    uint8 private constant STATUS_CODE_UNKNOWN = 0;
-    uint8 private constant STATUS_CODE_ON_TIME = 10;
-    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
-    uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
-    uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
-    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
-
     bool operational;
-
     address private contractOwner; // Account used to deploy contract
     FlightSuretyData flightSuretyData;
 
     event Success(string topic);
-    
+    event Fail(string topic);
+
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -109,37 +100,58 @@ contract FlightSuretyApp {
     }
 
     function registerAdmin() external
-    requireOperational
     payable
+    requireOperational
     {
         address addressOfAirline = msg.sender;
         uint256 amountSent = msg.value;
-        flightSuretyData.registerAdmin(addressOfAirline, amountSent);
+        flightSuretyData.registerAdmin.value(amountSent)(addressOfAirline);
         emit Success("Admin registered");
     }
 
     function registerFlight(
         string calldata _flight,
         address _airline,
-        uint256 _timestamp,
-        uint256 _amountSent
+        uint256 _timestamp
         )
     external
     payable
     requireOperational
     {
-        require(msg.value == _amountSent, "Funding not corresponding to actual money send");
-        require(_amountSent > 0 ether, "Not enough money send");
-        require(_amountSent < 1 ether, "Too much money send");
+        // require(msg.value == _amountSent, "Funding not corresponding to actual money send");
+        require(msg.value != 0 wei, "Not enough money send");
+        require(msg.value < 1 ether, "Too much money send");
         address _addressOfPassenger = msg.sender;
-        flightSuretyData.registerFlight(_flight, _airline, _timestamp, _addressOfPassenger, _amountSent);
+        flightSuretyData.registerFlight.value(msg.value)(_flight, _airline, _timestamp, _addressOfPassenger);
     }
 
-    function deregisterFlight(string calldata _flight) external
+    function deregisterFlight(string memory _flight) internal
     requireOperational
     {
         flightSuretyData.deregisterFlight(_flight);
-        emit Success("Flight deregistered");
+        // emit Success("Flight deregistered");
+    }
+
+    function getFlightWithdrawStatus(string memory _flight) internal view
+    requireOperational
+    returns(bool)
+    {
+        bool status = flightSuretyData.getFlightWithdrawStatus(_flight);
+        return status;
+    }
+
+    function openWithdrawForFlight(string memory _flight) internal
+    requireOperational
+    {
+        flightSuretyData.openWithdrawForFlight(_flight);
+        // emit Success("Withdrawing now open for flight");
+    }
+
+    function withdrawPassengerMoney(string memory _flight, address payable _addressOfPassenger) internal
+    requireOperational
+    {
+        flightSuretyData.withdrawPassengerMoney(_flight, _addressOfPassenger);
+        emit Success("Withdrawing now open for flight");
     }
 
     function setOpinion(string calldata _topic, bool _opinion) external
@@ -158,13 +170,11 @@ contract FlightSuretyApp {
         emit Success("Opinion retrieved");
     }
 
-    function getBalance() external {
-        flightSuretyData.getBalance();
+    function getBalance() external returns(uint256){
+        uint256 balance = flightSuretyData.getBalance();
         emit Success("Balance retrieved");
+        return balance;
     }
-
-
-
 
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
@@ -183,20 +193,27 @@ contract FlightSuretyApp {
      *
      */
     function processFlightStatus(
-        address airline,
         string memory flight,
-        uint256 timestamp,
         uint8 statusCode
     )
     internal
     requireOperational{
-        // if statusCode = 20 => emit a a withdraw button
-        // else => emit an event saying that flight delay was not caused by airline 
-
-        // close oracleRequest
-        // delete flight
+        if (statusCode == 20) {
+            openWithdrawForFlight(flight);
+            // emit Success("Withdraw: Process flight information successful");
+        } else {
+            deregisterFlight(flight);
+            // emit Fail("Derigistration: Process flight information successful");
+        }
     }
-    
+
+    function withdrawMoney(string calldata flight) external
+    requireOperational
+    {
+        withdrawPassengerMoney(flight, msg.sender);
+    }
+
+
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
         address airline,
@@ -205,16 +222,19 @@ contract FlightSuretyApp {
     )
     external
     {
-        uint8 index = getRandomIndex(msg.sender);
+        bool withdrawStatus = getFlightWithdrawStatus(flight);
+        if (withdrawStatus) {
+            withdrawPassengerMoney(flight, msg.sender);
+        } else {
+            uint8 index = getRandomIndex(msg.sender);
+            // Generate a unique key for storing the request
+            bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+            oracleResponses[key] = ResponseInfo({
+                requester: msg.sender, isOpen: true
+            });
 
-        // Generate a unique key for storing the request
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
-        oracleResponses[key] = ResponseInfo({
-            requester: msg.sender,
-            isOpen: true
-        });
-
-        emit OracleRequest(index, airline, flight, timestamp);
+            emit OracleRequest(index, airline, flight, timestamp);
+        }
     }
 
 
@@ -274,8 +294,7 @@ contract FlightSuretyApp {
         require(!oracles[_oracle].isRegistered, "Oracle is already registered.");
         uint8[3] memory indexes = generateIndexes(_oracle);
         oracles[_oracle] = Oracle({
-            isRegistered: true,
-            indexes: indexes
+            isRegistered: true, indexes: indexes
         });
         emit DefaultOracleRegistered(_oracle, indexes[0], indexes[1], indexes[2]);
     }
@@ -292,8 +311,7 @@ contract FlightSuretyApp {
         uint8[3] memory indexes = generateIndexes(msg.sender);
 
         oracles[msg.sender] = Oracle({
-            isRegistered: true,
-            indexes: indexes
+            isRegistered: true, indexes: indexes
         });
 
     }
@@ -307,13 +325,12 @@ contract FlightSuretyApp {
         return oracles[msg.sender].indexes;
     }
 
-
-
-
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
     // time of registration (i.e. uninvited oracles are not welcome)
+
+
     function submitOracleResponse(
         uint8 index,
         address airline,
@@ -326,22 +343,21 @@ contract FlightSuretyApp {
     {
         // for test reason this is in a comment
         // require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
-
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
-
         oracleResponses[key].responses[statusCode].push(msg.sender);
-
         // Information isn't considered verified until at least MIN_RESPONSES
         // oracles respond with the *** same *** information
-        emit OracleReport(airline, flight, timestamp, statusCode);
-        if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
-            emit FlightStatusInfo(airline, flight, timestamp, statusCode);
+        //emit OracleReport(airline, flight, timestamp, statusCode);
+        if (oracleResponses[key].responses[statusCode].length == MIN_RESPONSES) {
+            oracleResponses[key].isOpen = false;
             // Handle flight status as appropriate
-            processFlightStatus(airline, flight, timestamp, statusCode);
+            processFlightStatus(flight, statusCode);
+            emit FlightStatusInfo(airline, flight, timestamp, statusCode);
+        } else {
+            emit Success("One response has been made");
         }
     }
-
 
     function getFlightKey(
         address airline,
@@ -405,16 +421,18 @@ contract FlightSuretyApp {
 contract FlightSuretyData {
     function setOperationalStatus(bool operationalStatus, address caller) external;
     function registerAirline(address addressOfAirline, address caller) external;
-    function registerAdmin(address addressOfAirline, uint256 amountSent) external payable;
+    function registerAdmin(address addressOfAirline) external payable;
     function registerFlight(
         string calldata _flight,
         address _airline,
         uint256 _timestamp,
-        address _addressOfPassenger,
-        uint256 _amountSent
+        address _addressOfPassenger
         ) external payable;
     function deregisterFlight(string calldata _flight) external;
+    function openWithdrawForFlight(string calldata _flight) external;
+    function getFlightWithdrawStatus(string calldata _flight) external view returns(bool);
+    function withdrawPassengerMoney(string calldata _flight, address payable _addressOfPassenger) external payable;
     function setOpinion(address caller, string calldata _topic, bool _opinion) external;
     function getOpinion(address caller, string calldata _topic) external view;
-    function getBalance() public view;
+    function getBalance() public view returns (uint256);
 }

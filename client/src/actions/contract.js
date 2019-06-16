@@ -1,11 +1,12 @@
 import TruffleContract from 'truffle-contract';
 import Web3 from 'web3';
-import { CONTRACT, METAMASK_ACCOUNT, WEB3_PROVIDER} from './types';
+import { CONTRACT, METAMASK_ACCOUNT, WEB3_PROVIDER, WEB3, ETHERS} from './types';
 import FlightSuretyApp from '../blockchain/build/contracts/FlightSuretyApp';
+import {ethers} from 'ethers';
 
 //signup is an action creator
 // callback marked with () in the SignUp component
-export const initWeb3 = (formProps, callback) => async dispatch => {
+export const initWeb3 = (callback) => async dispatch => {
     if (window.ethereum) {
         dispatch({
             type: WEB3_PROVIDER,
@@ -38,19 +39,27 @@ export const initWeb3 = (formProps, callback) => async dispatch => {
 
 export const getMetaskAccountID = (web3Provider, callback) => async dispatch => {
 
-    let web3 = new Web3(web3Provider);
+    const web3 = new Web3(web3Provider);
+        dispatch({
+            type: WEB3,
+            payload: web3
+        })
         // Retrieving accounts
-    web3.eth.getAccounts(function(err, res) {
-        if (err) {
-            console.log('Error:',err);
-            return;
-        }
-        console.log('getMetaskID:',res);
+        dispatch({
+            type: ETHERS,
+            payload: ethers
+        })
+
+    try {
+        const accounts = await web3.eth.getAccounts()
         dispatch({
             type: METAMASK_ACCOUNT,
-            payload: res[0]
+            payload: accounts[0]
         })
-    })
+    } 
+    catch(err) {
+        console.log(err);
+    }   
     callback();
 }
 

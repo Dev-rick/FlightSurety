@@ -42,9 +42,11 @@ contract FlightSuretyData {
 
     struct Flight {
         bool exists;
+        bool withdrawOpen;
         uint8 statusCode;
         uint256 timestamp;
         address airline;
+        uint256 totalBalance;
         mapping(address => Passenger) passengers;
     }
 
@@ -216,19 +218,19 @@ contract FlightSuretyData {
     }
 
     // registers a new admin
-    function registerAdmin(address addressOfAirline, uint256 amountSent) external payable
+    function registerAdmin(address addressOfAirline) external payable
     requireOperational
     {
         require(airlines[addressOfAirline].isRegistered, "First register as Airline");
         require(!airlines[addressOfAirline].isAdmin, "Airline is already admin");
-        require(amountSent != 10 ether, "Min of 10 ether are required");
-        airlines[addressOfAirline].balance = amountSent;
+        require(msg.value != 10 ether, "Min of 10 ether are required");
+        airlines[addressOfAirline].balance = msg.value;
         airlines[addressOfAirline].isAdmin = true;
         numberOfAdmins += 1;
     }
 
     //register a new passenger
-    function registerFlight(string calldata _flight, address _airline, uint256 _timestamp, address _addressOfPassenger, uint256 _amountSent)
+    function registerFlight(string calldata _flight, address _airline, uint256 _timestamp, address _addressOfPassenger)
     external
     payable
     requireOperational
@@ -236,14 +238,17 @@ contract FlightSuretyData {
         require(!flights[_flight].passengers[_addressOfPassenger].isRegistered, "You have already insured against this flight");
         if (!flights[_flight].exists) {
             flights[_flight].exists = true;
+            flights[_flight].withdrawOpen = false;
             flights[_flight].statusCode = STATUS_CODE_UNKNOWN;
             flights[_flight].timestamp = _timestamp;
             flights[_flight].airline = _airline;
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
-            flights[_flight].passengers[_addressOfPassenger].balance = _amountSent;
+            flights[_flight].passengers[_addressOfPassenger].balance = msg.value;
+            flights[_flight].totalBalance += msg.value;
         } else {
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
-            flights[_flight].passengers[_addressOfPassenger].balance = _amountSent;
+            flights[_flight].passengers[_addressOfPassenger].balance = msg.value;
+            flights[_flight].totalBalance += msg.value;
         }
     }
 
@@ -253,73 +258,47 @@ contract FlightSuretyData {
     requireOperational
     {
         require(flights[_flight].exists, "Flight is already deleted");
+        uint256 sum = flights[_flight].totalBalance;
+        airlines[flights[_flight].airline].balance = sum;
         delete flights[_flight];
     }
-    /**
-     * @dev Buy insurance for a flight
-     *
-     */
-    function buy()
+
+    //open withdraw for flight
+    function openWithdrawForFlight(string calldata _flight)
     external
-    payable
     requireOperational
     {
+        flights[_flight].withdrawOpen = true;
+    }
+
+    function getFlightWithdrawStatus(string calldata _flight)
+    external view
+    requireOperational
+    returns(bool)
+    {
+        return flights[_flight].withdrawOpen;
+    }
+
+
+    function withdrawPassengerMoney(string calldata _flight, address payable _addressOfPassenger) external payable{
+        require(flights[_flight].exists = true, "Flight does not exists");
+        require(flights[_flight].withdrawOpen = true, "Flight is not open for withdraw");
+        require(flights[_flight].passengers[_addressOfPassenger].isRegistered = true, "You are not registered as passenger");
+        require(flights[_flight].passengers[_addressOfPassenger].balance != 0, "You don't have any money secured");
+        uint256 prev = flights[_flight].passengers[_addressOfPassenger].balance;
+        delete flights[_flight].passengers[_addressOfPassenger];
+        _addressOfPassenger.transfer(prev);
 
     }
 
-    /**
-     *  @dev Credits payouts to insurees
-     */
-    function creditInsurees()
-    external
-    requireOperational
-    {}
+    // function withdrawAirlineMoney(address _addressOfAirline) external payable{
+    //     require(airlines[_addressOfAirline].balance > 10, "You cannot withdraw money you need at least over ten ether in your account");
 
-
-    /**
-     *  @dev Transfers eligible payout funds to insuree
-     *
-     */
-    function pay()
-    external
-    requireOperational
-    {}
-
-    /**
-     * @dev Initial funding for the insurance. Unless there are too many delayed flights
-     *      resulting in insurance payouts, the contract should be self-sustaining
-     *
-     */
-    function fund()
-    public
-    payable
-    requireOperational
-    {}
-
-    function getFlightKey(
-        address airline,
-        string memory flight,
-        uint256 timestamp
-    )
-    internal
-    view
-    requireOperational
-    returns(bytes32) {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
-    }
+    // }
 
     /**
      * @dev Fallback function for funding smart contract.
      *
      */
-    function ()
-    external
-    payable
-    requireOperational
-    {
-        fund();
-    }
-
-
 
 }

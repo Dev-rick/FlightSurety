@@ -1,13 +1,13 @@
 * This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app)
-* Following the instructions from Stephen Grider of the Udemy course: Advanced React and Redux: 2018 Edition
 
 # Summary
 
-* Authentication: Bringing Front and Back end together
+* Under Development
+* Flight Surety App
 
 ## Crucial point:
 
-"We learned a lot of interesting things around working with redux thunk. I want to specifically point out the fact that when we make use of redux thank you will frequently see it with this abbreviated syntax. Remember when we have this arrow function right here it all it means is that we've got one function that's returning a another function. The child function gets called with that dispatch method and dispatch allows us to manually send any number of actions we want to into our redux store when we call dispatch and passing the action the action gets sent to all of our middle weares and then forwarded on to all the reducers in our application. Inside of our Sign-Up action creator we make use of local storage to store the Jason web token that we got back from our API. Now one thing I want to mention about local storage it's kind of undecided in the web development community as to whether or not local storage is truly a secure location to put a face on web token. In theory if someone manages to execute a cross-site scripting attack on your Web site they could possibly pull the token out of local storage and then use it to impersonate that user. This is really an unsolved problem right now and when you're using js some web tokens. Well local storage is possibly one of the best possibilities there are solutions you get but it's not necessarily the end all be all solution and standards around storage of local's of Jason Webb tokens are still developing. Then inside of our require off J.S. file in our components directory I want to point out that we very very successfully reused our require off higher order component. I really encourage you to think about putting together higher order components on your own personal projects and figuring out ways to extend functionality of your simple components with higher order components that you can reuse on future projects you put together. Really this was a great example of how we put one together on an earlier project and then very easily reused it on this newer project when we were working on the last thing I want to talk about very briefly is what we just did in the last section where we imported SPSS file into our heterogeneous file. A Do people don't know this but yes create re-act up is wired to allow you to import CSSA files directly into your javascript code and create re-act up ships with some configuration for web pack that handles this in an appropriate fashion."
+
 
 ## Starting the MongoDB database and the connection to it
 

@@ -27,7 +27,7 @@ export default async (data, fromAccount, toAddress, gas = 2015702, value = null)
     web3HTTP.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction)
     .once('confirmation', (confirmationNumber, receipt) => {
       console.log("Following transaction completed", receipt.logs[0].transactionHash)
-      resolve()
+      resolve(receipt.logs)
     })
     .on('error', (err) => {
       reject(err);
