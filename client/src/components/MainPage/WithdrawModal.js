@@ -1,48 +1,77 @@
 import { compose } from 'redux';
 import React, {Component} from 'react';
-import {Button, Modal, Form, Col, InputGroup} from 'react-bootstrap';
+import {Button, Modal, Form, Container} from 'react-bootstrap';
 import { connect } from 'react-redux';
+import LoadingModal from './LoadingModal';
 
 
 class WithdrawModal extends Component {
     constructor(props) {
       super(props);
       this.state = { 
-        validated: true,
-      };
-    }
-    handleSubmit = async (event) => {
-      event.preventDefault();
-      let result;
-      try{
-        result = await this.props.contract.withdrawMoney(this.props.flight, this.props.timestamp, {from: this.props.metamaskAccount}); 
-        console.log(result);
-      }catch(err) {
-        console.log(err);
+        validated: false,
+        loadingModal: {
+          show : false,
+          title : "",
+          body : ""
       }
-      console.log("submit was handled");
-    }
+    };
+  }
 
+  clearForm = () => {
+    this.setState({ 
+      validated: false, 
+       loadingModal: {
+        show: false
+     }
+    });
+  }
+
+  handleSubmit(event) {
+    const form = event.currentTarget;
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else {
+      this.withdrawMoney(event, this.clearForm)
+    }
+    this.setState({ validated: true });
+  }
+  
+  async withdrawMoney(event, callback) {
+    event.preventDefault();
+    this.setState({
+      loadingModal: {
+        show : true,
+        title : "Getting Your Compensation",
+        body : "Please do not leave page while loading..."
+     }
+    })
+      let result;
+      try { 
+        result = await this.props.contract.withdrawMoney(this.props.flight, this.props.timestamp, {from: this.props.metamaskAccount}); 
+        console.log("Money successfully withdrawn", result);
+      } catch(err) {
+        console.log(err.message);
+      };
+      callback();
+  }
 
     render() {
       const { validated } = this.state;
       return (
-        <Modal
-          {...this.props}
-          size="lg"
-          aria-labelledby="contained-modal-title-vcenter"
-          centered
-        >
-          <Modal.Header closeButton>
-            <Modal.Title id="contained-modal-title-vcenter">
-              Compensation for flight delay
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <h4>We are very sorry for the delay please apply take this compensation:</h4>
-            <p>
-              Information about your withdraw from props
-            </p>
+        <div>
+          <Modal
+            show={this.props.show}
+            size="sm"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered
+          >
+            <Modal.Header closeButton>
+              <Modal.Title id="contained-modal-title-vcenter">
+                Compensation for flight delay
+              </Modal.Title>
+            </Modal.Header>
           <Form
               noValidate
               validated={validated}
@@ -50,20 +79,26 @@ class WithdrawModal extends Component {
               className="transparent-box"
               id="submit-form"
             >
-              <Form.Group>
-                <Form.Check
-                  required
-                  label="Agree to terms and conditions"
-                  feedback="You must agree before submitting."
-                />
-              </Form.Group>
-              <Button type="submit">Get compensation</Button>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={this.props.onHide}>Close</Button>
-          </Modal.Footer>
-        </Modal>
+            <Modal.Body>
+                  <Form.Group>
+                    <Form.Check
+                      required
+                      label="Agree to terms and conditions"
+                      feedback="You must agree before submitting."
+                    />
+                  </Form.Group>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button type="submit" onClick={this.props.onHide}>Get compensation</Button>
+            </Modal.Footer>
+          </Form>
+          </Modal>
+          <LoadingModal
+              show={this.state.loadingModal.show}
+              title={this.state.loadingModal.title}
+              body={this.state.loadingModal.body}
+            />
+        </div>
       );
     }
   }

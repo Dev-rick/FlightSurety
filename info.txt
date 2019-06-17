@@ -1,8 +1,19 @@
 Next steps:
 
+
+# safeMath operator ==> a = a+b
+
 # make a new component for airline registration and make them store ethers
 # passenger get some of that money when he can wiithdraw  (1.5 multiple)
+# Make an operational status setting possible in client
 
+
+#First call function registerFlight(
+        string calldata _flight,
+        address payable _airline,
+        uint256 _timestamp
+        )
+#Second call function registerAdmin() external with value
 
 #============================Learned=============================================#
 # Interaction between contracts must not be strings
@@ -13,3 +24,8 @@ Next steps:
 # send value in transactions between contract using contract.method.value(xx)(arg1, arg2);
 # mark all the concerned addresses and methods as payable 
 #============================Learned=============================================#
+
+
+// comment all require out before submitting
+// write in comment for Udacity that you have commented all the different require() for testing purposes
+// make oracle response back to random

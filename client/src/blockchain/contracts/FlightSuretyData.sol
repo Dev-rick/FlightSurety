@@ -37,14 +37,14 @@ contract FlightSuretyData {
     struct Airline {
         bool isRegistered;
         bool isAdmin;
-        uint256 balance;
+        uint balance;
     }
 
     struct Flight {
         bool exists;
         bool withdrawOpen;
         uint8 statusCode;
-        address airline;
+        address payable airline;
         uint totalBalance;
         mapping(address => Passenger) passengers;
     }
@@ -57,7 +57,7 @@ contract FlightSuretyData {
     mapping(address => Airline) public airlines;   // Mapping for storing Airline profiles
     mapping(bytes32 => Flight) public flights;   // Mapping for storing Passenger profiles
     mapping(bytes32 => Topic) public topics;
-    event Success();
+    event Success(string);
     event Balance(uint);
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -69,7 +69,7 @@ contract FlightSuretyData {
      *      The deploying account becomes contractOwner
      */
     constructor
-        (address FirstAirline, uint256 balance)
+        (address payable FirstAirline, uint balance)
     public {
         contractOwner = msg.sender;
         airlines[FirstAirline] = Airline(true, true, balance);
@@ -157,31 +157,37 @@ contract FlightSuretyData {
     }
 
     // Setting an opinion
-    function setOpinion(address caller, bytes32 _topic, bool _opinion) external
+    function setOpinion(address caller, bytes32 _topic, bool _opinion) internal
     requireOperational
     requireAdmin(caller)
     requireDifferentOpinion(caller, _topic, _opinion)
+    returns(bool)
     {
         if (!topics[_topic].members[caller].exists) {
             topics[_topic].members[caller] = Member(true, _opinion);
-            emit Success();
-        } else if (topics[_topic].members[caller].exists) {
-            if (topics[_topic].members[caller].opinion != _opinion) {
-                topics[_topic].members[caller].opinion = _opinion;
-            }
+            emit Success("New member of topic registered");
+        } else {
+            topics[_topic].members[caller].opinion = _opinion;
+            emit Success("New member of topic registered");
         }
-        if (_opinion) {
-            topics[_topic].numberOfCurrentYes += 1;
-            if (topics[_topic].numberOfCurrentYes >= topics[_topic].requiredNumberOfYes) {
-                topics[_topic].state = true;
-            }
+        topics[_topic].numberOfCurrentYes.add(1);
+        if (topics[_topic].numberOfCurrentYes >= topics[_topic].requiredNumberOfYes) {
+            topics[_topic].state = true;
+            emit Success("topic state is now true");
+            return true;
+        } else {
+            return false;
         }
-        else if (!_opinion) {
-            topics[_topic].numberOfCurrentYes -= 1;
-            if (topics[_topic].numberOfCurrentYes < topics[_topic].requiredNumberOfYes) {
-                topics[_topic].state = false;
-            }
-        }
+        // for more complex voting if it is possible to change the opinion
+        // if (_opinion){}
+        // else if (!_opinion) {
+        //     topics[_topic].numberOfCurrentYes.sub(1);
+        //     if (topics[_topic].numberOfCurrentYes < topics[_topic].requiredNumberOfYes) {
+        //         topics[_topic].state = false;
+        //         emit Success("topic state is now false");
+        //         return false;
+        //     }
+        // }
     }
 
     function getOpinion(address caller, bytes32 _topic)
@@ -202,39 +208,56 @@ contract FlightSuretyData {
      *
      */
 
-    function registerAirline(address addressOfAirline, address caller)
+    function registerAirline(address payable addressOfAirline, address caller)
     external
     requireOperational
     requireAdmin(caller)
     {
+
         require(!airlines[addressOfAirline].isRegistered, "Airline is already registered.");
-        if (numberOfAdmins < 5) {
+        if (numberOfAdmins < 4) {
             airlines[addressOfAirline] = Airline(true, false, 0);
+            emit Success("Airline registered");
+            return;
         } else {
             bytes32 airline = keccak256(abi.encodePacked(addressOfAirline));
-            require(topics[airline].exists, "Topic does already exists, please vote");
-            createNewTopic(caller, airline);
+            if (topics[airline].exists) {
+                bool result = setOpinion(caller, airline, true);
+                if (result) {
+                    airlines[addressOfAirline] = Airline(true, false, 0);
+                    emit Success("Enough admins have voted, the airline will be registered");
+                } else {
+                    emit Success("Voted for registration of airline");
+                }
+                return;
+            } else {
+                createNewTopic(caller, airline);
+                emit Success("Created new topic for registration of a new airline and voted for it");
+                return;
+            }
         }
     }
 
     // registers a new admin
-    function registerAdmin(address addressOfAirline) external payable
+    function registerAdmin(address payable addressOfAirline) external payable
     requireOperational
     {
         require(airlines[addressOfAirline].isRegistered, "First register as Airline");
         require(!airlines[addressOfAirline].isAdmin, "Airline is already admin");
-        require(msg.value != 10 ether, "Min of 10 ether are required");
+        ///@dev for testing purposes commented out
+        // require(msg.value != 10 ether, "Min of 10 ether are required");
         airlines[addressOfAirline].balance = msg.value;
         airlines[addressOfAirline].isAdmin = true;
         numberOfAdmins += 1;
     }
 
     //register a new passenger
-    function registerFlight(bytes32 _flight, address _airline, address payable _addressOfPassenger)
+    function registerFlight(bytes32 _flight, address payable _airline, address payable _addressOfPassenger)
     external
     payable
     requireOperational
     {
+        require(airlines[_airline].isRegistered == true, "Airline is not registered");
         require(msg.value > 0 wei, "You did not send any money along");
         require(!flights[_flight].passengers[_addressOfPassenger].isRegistered, "You have already insured against this flight");
         uint value = msg.value;
@@ -245,13 +268,16 @@ contract FlightSuretyData {
             flights[_flight].airline = _airline;
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
             flights[_flight].passengers[_addressOfPassenger].balance = value;
+            flights[_flight].totalBalance = 1;
             flights[_flight].totalBalance.add(value);
         } else {
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
             flights[_flight].passengers[_addressOfPassenger].balance = value;
+            flights[_flight].totalBalance = 1;
             flights[_flight].totalBalance.add(value);
         }
         emit Balance(flights[_flight].passengers[_addressOfPassenger].balance);
+        emit Balance(flights[_flight].totalBalance);
     }
 
     //deregister a new passenger
@@ -259,7 +285,7 @@ contract FlightSuretyData {
     external
     requireOperational
     {
-        require(flights[_flight].exists, "Flight is already deleted");
+        require(flights[_flight].exists, "Flight is not registered");
         uint sum = flights[_flight].totalBalance;
         airlines[flights[_flight].airline].balance = sum;
         delete flights[_flight];
@@ -287,29 +313,52 @@ contract FlightSuretyData {
     }
 
     function withdrawPassengerMoney(bytes32 _flight, address payable _addressOfPassenger) external payable{
-        require(flights[_flight].exists = true, "Flight does not exists");
-        require(flights[_flight].withdrawOpen = true, "Flight is not open for withdraw");
-        require(flights[_flight].passengers[_addressOfPassenger].isRegistered = true, "You are not registered as passenger");
-        // require(flights[_flight].passengers[_addressOfPassenger].balance > 0, "You don't have any money secured");
-        uint prev = getBalanceOfPassenger(_flight, _addressOfPassenger);
+        require(flights[_flight].exists == true, "Flight has not been registered");
+        require(flights[_flight].withdrawOpen == true, "Flight is not open for withdraw");
+        require(flights[_flight].passengers[_addressOfPassenger].isRegistered == true, "You are not registered as passenger");
+        require(flights[_flight].passengers[_addressOfPassenger].balance > 0, "You don't have any money secured");
+        uint balanceOfPassenger = getBalanceOfPassenger(_flight, _addressOfPassenger);
         delete flights[_flight].passengers[_addressOfPassenger];
-        _addressOfPassenger.transfer(prev);
-        emit Balance(prev);
-
+        uint totalRefund = balanceOfPassenger.mul(15).div(10);
+        require(balanceOfPassenger < totalRefund, "Total Refund us not bigger than balanceOfPasseger");
+        uint compensation = totalRefund.sub(balanceOfPassenger);
+        address payable addressOfAirline = flights[_flight].airline;
+        require(flights[_flight].totalBalance > balanceOfPassenger, "Total Balance is smaller than balanceOfPasseger");
+        uint balanceOfAirline = getBalanceOfAirline(addressOfAirline);
+        if (balanceOfAirline < compensation) {
+            ///@dev normally this should not be the case but as the require of 10 eth is outcommented in the registerAdmin, it can be the case
+            flights[_flight].totalBalance.sub(balanceOfPassenger);
+            _addressOfPassenger.transfer(balanceOfPassenger);
+            emit Success("Airline has not enough funds you will only get your funds back");
+        } else {
+            airlines[addressOfAirline].balance.sub(compensation);
+            flights[_flight].totalBalance.sub(balanceOfPassenger);
+            _addressOfPassenger.transfer(totalRefund);
+            emit Success("You will get 1.5 more than you have insured");
+        }
     }
 
-    function() external payable {
 
+    function getBalanceOfAirline(address payable _addressOfAirline) internal view returns(uint) {
+        return airlines[_addressOfAirline].balance;
     }
 
-    // function withdrawAirlineMoney(address _addressOfAirline) external payable{
-    //     require(airlines[_addressOfAirline].balance > 10, "You cannot withdraw money you need at least over ten ether in your account");
-
-    // }
+    function withdrawAirlineMoney(address payable _addressOfAirline) external payable{
+        ///@dev Commented out for testing purposes
+        //require(airlines[_addressOfAirline].balance > 10, "You cannot withdraw money you need at least over ten ether in your account");
+        require(airlines[_addressOfAirline].isRegistered == true, "Airline is not registered");
+        require(airlines[_addressOfAirline].balance > 0, "You don't have any money secured");
+        uint prev = getBalanceOfAirline(_addressOfAirline);
+        delete airlines[_addressOfAirline];
+        _addressOfAirline.transfer(prev);
+    }
 
     /**
      * @dev Fallback function for funding smart contract.
      *
      */
+    function() external payable {
+
+    }
 
 }

@@ -9,8 +9,8 @@ class NoCompensationModal extends Component {
     render() {
       return (
         <Modal
-          {...this.props}
-          size="lg"
+          show={this.props.show}
+          size="sm"
           aria-labelledby="contained-modal-title-vcenter"
           centered
         >

@@ -4,7 +4,7 @@ import {Container, Button, Form, Col, InputGroup} from 'react-bootstrap';
 import { connect } from 'react-redux';
 import {ethers} from 'ethers';
 import WithdrawModal from './WithdrawModal'
-import LoadingFlightCheckModal from './LoadingFlightCheckModal';
+import LoadingModal from './LoadingModal';
 import NoCompensationModal from './NoCompensationModal';
 import * as actions from '../../actions/flightInformation';
 
@@ -27,7 +27,11 @@ class CheckFlight extends Component {
           statusCode: ""
         }
        },
-       waitingModal: false,
+       loadingModal: {
+        show : false,
+        title : "",
+        body : ""
+     },
        withdrawModalshow: false,
        noCompensationModal: false
       }
@@ -70,12 +74,16 @@ class CheckFlight extends Component {
                 });
           if (this.state.event.dataCatched.statusCode === 20) {
             this.setState({
-              waitingModal: false, 
+              loadingModal: {
+                show: false
+             }, 
               withdrawModalshow: true
             })
           } else {
             this.setState({
-              waitingModal: false, 
+              loadingModal: {
+                show: false
+             }, 
               noCompensationModal: true
             })
           }
@@ -142,7 +150,11 @@ class CheckFlight extends Component {
         console.log("flight information send to redux store")
       });
       this.setState({
-        waitingModal : true
+        loadingModal: {
+          show : true,
+          title : "Checking Flight Delay",
+          body : "Please do not leave page while loading..."
+       }
       })
       let subscription;
       try{
@@ -150,7 +162,6 @@ class CheckFlight extends Component {
       } catch(err) {
         console.log(err);
       }
-      console.log("I am the from Account", this.props.metamaskAccount);
       try { 
         const result = await this.props.contract.fetchFlightStatus(airline, flight, updatedTimestamp, {from: this.props.metamaskAccount}); 
         console.log("Flight is getting checked...", result);
@@ -185,11 +196,17 @@ class CheckFlight extends Component {
         >
           <Form.Row>
             <Form.Group as={Col} md="6" controlId="flight">
-              <Form.Label>Flight Number</Form.Label>
-              <Form.Control type="text" placeholder="ZW2312" value={this.state.form.flight} required />
-              <Form.Control.Feedback type="invalid">
-                Please provide a valid flight number.
-              </Form.Control.Feedback>
+              <Form.Label>Select your flight</Form.Label>
+              <Form.Control value={this.state.form.flight} as="select" required >
+                <option>BA2490</option>
+                <option>BA2499</option>
+                <option>BA2426</option>
+                <option>BA2490A</option>
+                <option>BA2490B</option>
+              </Form.Control>
+                <Form.Control.Feedback type="invalid">
+                  Please select a flight!
+                </Form.Control.Feedback>
             </Form.Group>
             <Form.Group as={Col} md="6" controlId="airline">
               <Form.Label>Airline Address</Form.Label>
@@ -215,10 +232,12 @@ class CheckFlight extends Component {
               feedback="You must agree before submitting."
             />
           </Form.Group>
-          <Button type="submit">Check Flight</Button>
+          <Button type="submit">For Passengers: Check Flight</Button>
         </Form>
-        <LoadingFlightCheckModal
-            show={this.state.waitingModal}
+        <LoadingModal
+            show={this.state.loadingModal.show}
+            title={this.state.loadingModal.title}
+            body={this.state.loadingModal.body}
           />
         <WithdrawModal
             show={this.state.withdrawModalshow}

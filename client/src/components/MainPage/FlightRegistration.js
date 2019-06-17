@@ -2,7 +2,7 @@ import { compose } from 'redux';
 import React, {Component} from 'react';
 import {Container, Button, Form, Col, InputGroup} from 'react-bootstrap';
 
-import LoadingFlightRegModal from './LoadingFlightRegModal';
+import LoadingModal from './LoadingModal';
 import { connect } from 'react-redux';
 
 class FlightRegistration extends Component {
@@ -16,7 +16,11 @@ class FlightRegistration extends Component {
         timestamp: "",
         amount: ""
        },
-       waitingModal: false
+       loadingModal: {
+        show : false,
+        title : "",
+        body : ""
+     }
     };
   }
 
@@ -41,7 +45,9 @@ class FlightRegistration extends Component {
         timestamp: "",
         amount: ""
        },
-       waitingModal: false
+       loadingModal: {
+        show: false
+     }
     });
   }
 
@@ -59,7 +65,11 @@ class FlightRegistration extends Component {
   async registerFlight(event, callback) {
     event.preventDefault();
     this.setState({
-      waitingModal: true
+      loadingModal: {
+        show : true,
+        title : "Registrating Flight",
+        body : "Please do not leave page while loading..."
+     }
     })
     console.log(this.state.form.flight);
       const flight = this.state.form.flight.toString();
@@ -70,14 +80,11 @@ class FlightRegistration extends Component {
       // const amount = Number(this.state.form.amount) * 1000000000000000000;
       const ether = this.props.web3.utils.toWei(this.state.form.amount, "ether");
       let result;
-      console.log(this.props.contract);
       try { 
-        console.log(this);
         result = await this.props.contract.registerFlight(
           flight, 
           airline, 
-          updatedTimestamp, 
-          // amount, 
+          updatedTimestamp,
           {from: this.props.metamaskAccount, value: ether}
           ); 
         console.log("Flight Registered", result);
@@ -102,10 +109,16 @@ class FlightRegistration extends Component {
       >
         <Form.Row>
           <Form.Group as={Col} md="6" controlId="flight">
-            <Form.Label>Flight Number</Form.Label>
-            <Form.Control type="text" placeholder="ZW2312" value={this.state.form.flight} required />
+            <Form.Label>Select your flight</Form.Label>
+            <Form.Control  value={this.state.form.flight} as="select" required >
+              <option>BA2490</option>
+              <option>BA2499</option>
+              <option>BA2426</option>
+              <option>BA2490A</option>
+              <option>BA2490B</option>
+            </Form.Control>
             <Form.Control.Feedback type="invalid">
-              Please provide a valid flight number.
+              Please select a flight!
             </Form.Control.Feedback>
           </Form.Group>
           <Form.Group as={Col} md="6" controlId="airline">
@@ -139,10 +152,12 @@ class FlightRegistration extends Component {
             feedback="You must agree before submitting."
           />
         </Form.Group>
-        <Button type="submit">Submit form</Button>
+        <Button type="submit">For Passengers: Register your Flight</Button>
       </Form>
-      <LoadingFlightRegModal
-            show={this.state.waitingModal}
+      <LoadingModal
+            show={this.state.loadingModal.show}
+            title={this.state.loadingModal.title}
+            body={this.state.loadingModal.body}
           />
       </Container>
     )

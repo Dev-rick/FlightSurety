@@ -4,8 +4,9 @@ var FlightSuretyData = artifacts.require("./FlightSuretyData.sol");
 const fs = require('fs');
 
 module.exports = async function(deployer) {
-    const addressOfFirstAirline = '0x27D8D15CbC94527cAdf5eC14B69519aE23288B95';
-    const balance = 5;
+    // For testing: Make sure its your address of addressOfFirstAirline 
+    const addressOfFirstAirline = '0x0be3dCDC09881e9e0773ce9287061Ff803A38d3d';
+    const balance = 0;
     await deployer.deploy(FlightSuretyData, addressOfFirstAirline, balance);
     const instanceOfFlightSuretyData = await FlightSuretyData.deployed();
     const addressOfFlightSuretyData = await instanceOfFlightSuretyData.address;
