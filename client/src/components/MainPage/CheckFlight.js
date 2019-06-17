@@ -138,9 +138,9 @@ class CheckFlight extends Component {
       const flight = this.state.form.flight.toString();
       const airline = this.state.form.airline.toString();
       const updatedTimestamp = Number(this.state.form.timestamp.split("-").join(""));
-      // await this.props.setFlightInformation(flight, () => {
-      //   console.log("flight information send to redux store")
-      // });
+      await this.props.setFlightInformation(flight, updatedTimestamp, () => {
+        console.log("flight information send to redux store")
+      });
       this.setState({
         waitingModal : true
       })

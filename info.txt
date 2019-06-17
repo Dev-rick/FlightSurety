@@ -4,9 +4,12 @@ Next steps:
 # passenger get some of that money when he can wiithdraw  (1.5 multiple)
 
 
-
-# truffle migrate to see if new method.(value)(argument1) works
-
-# no money secured error from data contract still appaers   ! 
-# problem with sending money to the data contract or saving money in there...
-# can we not send money from one contract to another?
+#============================Learned=============================================#
+# Interaction between contracts must not be strings
+# use bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+# to convert string to bytes32 so it can be properly transmitted
+# in addition set mappings in data contract to public
+# mapping(bytes32 => Flight) public flights;
+# send value in transactions between contract using contract.method.value(xx)(arg1, arg2);
+# mark all the concerned addresses and methods as payable 
+#============================Learned=============================================#

@@ -6,4 +6,5 @@ export const CONTRACT = 'contract';
 export const WEB3 = 'web3';
 export const FLIGHT = 'flight';
 export const ETHERS = 'ethers';
+export const TIMESTAMP = 'timestamp';
 

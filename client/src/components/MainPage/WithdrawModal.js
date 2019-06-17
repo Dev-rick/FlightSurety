@@ -15,7 +15,7 @@ class WithdrawModal extends Component {
       event.preventDefault();
       let result;
       try{
-        result = await this.props.contract.withdrawMoney(this.props.flight, {from: this.props.metamaskAccount}); 
+        result = await this.props.contract.withdrawMoney(this.props.flight, this.props.timestamp, {from: this.props.metamaskAccount}); 
         console.log(result);
       }catch(err) {
         console.log(err);
@@ -74,7 +74,8 @@ function mapStateToProps(state) {
       web3 : state.contract.web3,    
       metamaskAccount: state.contract.metamaskAccount,
       contract: state.contract.contract,
-      flight: state.flightInformation.flight
+      flight: state.flightInformation.flight,
+      timestamp: state.flightInformation.timestamp
   }
 }
 

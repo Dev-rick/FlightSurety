@@ -65,7 +65,7 @@ class FlightRegistration extends Component {
       const flight = this.state.form.flight.toString();
       const airline = this.state.form.airline.toString();
       console.log(this.state.form.timestamp);
-      debugger;
+      
       const updatedTimestamp = Number(this.state.form.timestamp.split("-").join(""));
       // const amount = Number(this.state.form.amount) * 1000000000000000000;
       const ether = this.props.web3.utils.toWei(this.state.form.amount, "ether");

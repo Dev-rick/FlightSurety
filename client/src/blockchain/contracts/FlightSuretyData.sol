@@ -4,7 +4,7 @@ import "./SafeMath.sol";
 
 contract FlightSuretyData {
     using SafeMath
-    for uint256;
+    for uint;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
@@ -44,21 +44,21 @@ contract FlightSuretyData {
         bool exists;
         bool withdrawOpen;
         uint8 statusCode;
-        uint256 timestamp;
         address airline;
-        uint256 totalBalance;
+        uint totalBalance;
         mapping(address => Passenger) passengers;
     }
 
     struct Passenger {
         bool isRegistered;
-        uint256 balance;
+        uint balance;
     }
 
-    mapping(address => Airline) airlines;   // Mapping for storing Airline profiles
-    mapping(string => Flight) flights;   // Mapping for storing Passenger profiles
-    mapping(string => Topic) topics;
+    mapping(address => Airline) public airlines;   // Mapping for storing Airline profiles
+    mapping(bytes32 => Flight) public flights;   // Mapping for storing Passenger profiles
+    mapping(bytes32 => Topic) public topics;
     event Success();
+    event Balance(uint);
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -109,13 +109,13 @@ contract FlightSuretyData {
     }
 
     // Modifier which verifies if multi-consensus
-    modifier requireMConsensus(string memory _topic) {
+    modifier requireMConsensus(bytes32 _topic) {
         // require that the operational state is different from his opinion before
         require(topics[_topic].state, "Consensus is not yet reached");
         _;
     }
 
-    modifier requireDifferentOpinion(address caller, string memory _topic, bool _opinion) {
+    modifier requireDifferentOpinion(address caller, bytes32 _topic, bool _opinion) {
          require(topics[_topic].members[caller].opinion != _opinion, "Your opinion did not change");
         _;
     }
@@ -124,7 +124,7 @@ contract FlightSuretyData {
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
-    function createNewTopic(address caller, string memory _topic) internal
+    function createNewTopic(address caller, bytes32 _topic) internal
     requireOperational
     {
         topics[_topic].members[caller] = Member(true, true);
@@ -157,7 +157,7 @@ contract FlightSuretyData {
     }
 
     // Setting an opinion
-    function setOpinion(address caller, string calldata _topic, bool _opinion) external
+    function setOpinion(address caller, bytes32 _topic, bool _opinion) external
     requireOperational
     requireAdmin(caller)
     requireDifferentOpinion(caller, _topic, _opinion)
@@ -184,7 +184,7 @@ contract FlightSuretyData {
         }
     }
 
-    function getOpinion(address caller, string calldata _topic)
+    function getOpinion(address caller, bytes32 _topic)
     external
     view
     requireOperational
@@ -211,9 +211,9 @@ contract FlightSuretyData {
         if (numberOfAdmins < 5) {
             airlines[addressOfAirline] = Airline(true, false, 0);
         } else {
-            string memory stringOfAirline = toString(addressOfAirline);
-            require(topics[stringOfAirline].exists, "Topic does already exists, please vote");
-            createNewTopic(caller, stringOfAirline);
+            bytes32 airline = keccak256(abi.encodePacked(addressOfAirline));
+            require(topics[airline].exists, "Topic does already exists, please vote");
+            createNewTopic(caller, airline);
         }
     }
 
@@ -230,64 +230,75 @@ contract FlightSuretyData {
     }
 
     //register a new passenger
-    function registerFlight(string calldata _flight, address _airline, uint256 _timestamp, address _addressOfPassenger)
+    function registerFlight(bytes32 _flight, address _airline, address payable _addressOfPassenger)
     external
     payable
     requireOperational
     {
+        require(msg.value > 0 wei, "You did not send any money along");
         require(!flights[_flight].passengers[_addressOfPassenger].isRegistered, "You have already insured against this flight");
+        uint value = msg.value;
         if (!flights[_flight].exists) {
             flights[_flight].exists = true;
             flights[_flight].withdrawOpen = false;
             flights[_flight].statusCode = STATUS_CODE_UNKNOWN;
-            flights[_flight].timestamp = _timestamp;
             flights[_flight].airline = _airline;
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
-            flights[_flight].passengers[_addressOfPassenger].balance = msg.value;
-            flights[_flight].totalBalance += msg.value;
+            flights[_flight].passengers[_addressOfPassenger].balance = value;
+            flights[_flight].totalBalance.add(value);
         } else {
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
-            flights[_flight].passengers[_addressOfPassenger].balance = msg.value;
-            flights[_flight].totalBalance += msg.value;
+            flights[_flight].passengers[_addressOfPassenger].balance = value;
+            flights[_flight].totalBalance.add(value);
         }
+        emit Balance(flights[_flight].passengers[_addressOfPassenger].balance);
     }
 
     //deregister a new passenger
-    function deregisterFlight(string calldata _flight)
+    function deregisterFlight(bytes32 _flight)
     external
     requireOperational
     {
         require(flights[_flight].exists, "Flight is already deleted");
-        uint256 sum = flights[_flight].totalBalance;
+        uint sum = flights[_flight].totalBalance;
         airlines[flights[_flight].airline].balance = sum;
         delete flights[_flight];
     }
 
     //open withdraw for flight
-    function openWithdrawForFlight(string calldata _flight)
+    function openWithdrawForFlight(bytes32 _flight)
     external
     requireOperational
     {
         flights[_flight].withdrawOpen = true;
     }
 
-    function getFlightWithdrawStatus(string calldata _flight)
+    function getFlightWithdrawStatus(bytes32 _flight)
     external view
     requireOperational
     returns(bool)
     {
         return flights[_flight].withdrawOpen;
+
     }
 
+    function getBalanceOfPassenger(bytes32 flight, address payable addressOfPassenger) internal view returns(uint) {
+        return flights[flight].passengers[addressOfPassenger].balance;
+    }
 
-    function withdrawPassengerMoney(string calldata _flight, address payable _addressOfPassenger) external payable{
+    function withdrawPassengerMoney(bytes32 _flight, address payable _addressOfPassenger) external payable{
         require(flights[_flight].exists = true, "Flight does not exists");
         require(flights[_flight].withdrawOpen = true, "Flight is not open for withdraw");
         require(flights[_flight].passengers[_addressOfPassenger].isRegistered = true, "You are not registered as passenger");
-        require(flights[_flight].passengers[_addressOfPassenger].balance != 0, "You don't have any money secured");
-        uint256 prev = flights[_flight].passengers[_addressOfPassenger].balance;
+        // require(flights[_flight].passengers[_addressOfPassenger].balance > 0, "You don't have any money secured");
+        uint prev = getBalanceOfPassenger(_flight, _addressOfPassenger);
         delete flights[_flight].passengers[_addressOfPassenger];
         _addressOfPassenger.transfer(prev);
+        emit Balance(prev);
+
+    }
+
+    function() external payable {
 
     }
 

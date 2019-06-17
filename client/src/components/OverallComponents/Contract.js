@@ -13,9 +13,9 @@ class Contract extends Component {
         this.state = { 
           subscription: null,
           event: {
-            dataCatched: [{
+            dataCatched: {
               information: ""
-            }]
+            }
            }
         };
     }
@@ -38,12 +38,12 @@ class Contract extends Component {
               console.log("Catched event ", Success.name, decodedData)
               this.setState({
                 event: {
-                  dataCatched: [{
+                  dataCatched: {
                     information: decodedData[0]
-                  }]
+                  }
                 }
               })
-              await this.componentDidMount();
+              // await this.componentDidMount();
               console.log(this.state.event.dataCatched.information)
               return;
           }
