@@ -170,7 +170,7 @@ contract FlightSuretyData {
             topics[_topic].members[caller].opinion = _opinion;
             emit Success("New member of topic registered");
         }
-        topics[_topic].numberOfCurrentYes.add(1);
+        topics[_topic].numberOfCurrentYes = topics[_topic].numberOfCurrentYes.add(1);
         if (topics[_topic].numberOfCurrentYes >= topics[_topic].requiredNumberOfYes) {
             topics[_topic].state = true;
             emit Success("topic state is now true");
@@ -268,13 +268,13 @@ contract FlightSuretyData {
             flights[_flight].airline = _airline;
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
             flights[_flight].passengers[_addressOfPassenger].balance = value;
-            flights[_flight].totalBalance = 1;
-            flights[_flight].totalBalance.add(value);
+            flights[_flight].totalBalance = 0;
+            flights[_flight].totalBalance = flights[_flight].totalBalance.add(value);
         } else {
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
             flights[_flight].passengers[_addressOfPassenger].balance = value;
-            flights[_flight].totalBalance = 1;
-            flights[_flight].totalBalance.add(value);
+            flights[_flight].totalBalance = 0;
+            flights[_flight].totalBalance = flights[_flight].totalBalance.add(value);
         }
         emit Balance(flights[_flight].passengers[_addressOfPassenger].balance);
         emit Balance(flights[_flight].totalBalance);
@@ -320,19 +320,19 @@ contract FlightSuretyData {
         uint balanceOfPassenger = getBalanceOfPassenger(_flight, _addressOfPassenger);
         delete flights[_flight].passengers[_addressOfPassenger];
         uint totalRefund = balanceOfPassenger.mul(15).div(10);
-        require(balanceOfPassenger < totalRefund, "Total Refund us not bigger than balanceOfPasseger");
+        require(balanceOfPassenger <= totalRefund, "Total Refund us not bigger than balanceOfPasseger");
         uint compensation = totalRefund.sub(balanceOfPassenger);
         address payable addressOfAirline = flights[_flight].airline;
-        require(flights[_flight].totalBalance > balanceOfPassenger, "Total Balance is smaller than balanceOfPasseger");
+        require(flights[_flight].totalBalance >= balanceOfPassenger, "Total Balance is smaller than balanceOfPasseger");
         uint balanceOfAirline = getBalanceOfAirline(addressOfAirline);
         if (balanceOfAirline < compensation) {
             ///@dev normally this should not be the case but as the require of 10 eth is outcommented in the registerAdmin, it can be the case
-            flights[_flight].totalBalance.sub(balanceOfPassenger);
+            flights[_flight].totalBalance = flights[_flight].totalBalance.sub(balanceOfPassenger);
             _addressOfPassenger.transfer(balanceOfPassenger);
             emit Success("Airline has not enough funds you will only get your funds back");
         } else {
-            airlines[addressOfAirline].balance.sub(compensation);
-            flights[_flight].totalBalance.sub(balanceOfPassenger);
+            airlines[addressOfAirline].balance = airlines[addressOfAirline].balance.sub(compensation);
+            flights[_flight].totalBalance = flights[_flight].totalBalance.sub(balanceOfPassenger);
             _addressOfPassenger.transfer(totalRefund);
             emit Success("You will get 1.5 more than you have insured");
         }

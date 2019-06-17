@@ -23,6 +23,8 @@ Next steps:
 # mapping(bytes32 => Flight) public flights;
 # send value in transactions between contract using contract.method.value(xx)(arg1, arg2);
 # mark all the concerned addresses and methods as payable 
+# correct use of safeMath functions  a = a+b a= a.add(b)
+# when function cannot be called from another function she is probable not marked as internal, if must be external than use this
 #============================Learned=============================================#
 
 
