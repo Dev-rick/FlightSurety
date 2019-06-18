@@ -1,67 +1,55 @@
-# Supply chain & data auditing
+# FLIGHT INSURANCE APP
 
-This repository containts an Ethereum DApp that demonstrates a Supply Chain flow between a Seller and Buyer. The user story is similar to any commonly used supply chain process. A Seller can add items to the inventory system stored in the blockchain. A Buyer can purchase such items from the inventory system. Additionally a Seller can mark an item as Shipped, and similarly a Buyer can mark an item as Received.
+This repository containts an Ethereum DApp that demonstrates a flight insurance application 
 
-**9.05.2019 - UPDATE:** The Farmer can/must include a picture of the good which will be stored on the IPFS server using the infura API. The Hash of the image will be included in the struct of the good.
-
-**11.05.2019 - UPDATE:**  It now includes the usage of access control which means that the owner of the contract has first to set the different roles (Farmer, Distributor, Retailer), and only these addresses can now execute their respective functions:
-
-* Farmer can only: HARVEST, PROCESS, PACK, SELL
-
-* Distributor can only: BUY, SHIP
-
-* Retailer can only: RECEIVE
-
-**CURRENT:** live version of contract: [ETHERSCAN](https://rinkeby.etherscan.io/address/0x0b0f0D2C24E795133Bf66a977B1F8e9d73759429)
-
-**OTHER UPDATES COMING SOON**
-
-* Unique Product Code Generator
-* Include OpenZeppelin structures
-* User Interface Design
-* Code optimization
+**CURRENT:** live version of contract: [ETHERSCAN](https://rinkeby.etherscan.io/address/0xc28e8e5c8628F625d5b56b056ef04e9D1c036A19)
 
 ## Preview
 
-![app-preview-image-1](https://github.com/Userrick/Simple-Supply-Chain-Udacity/blob/master/tutorial-images/app-image-1.PNG)
-![app-preview-image-2](https://github.com/Userrick/Simple-Supply-Chain-Udacity/blob/master/tutorial-images/app-image-2.PNG)
-![app-preview-image-3](https://github.com/Userrick/Simple-Supply-Chain-Udacity/blob/master/tutorial-images/app-image-3.PNG)
-![app-preview-image-4](https://github.com/Userrick/Simple-Supply-Chain-Udacity/blob/master/tutorial-images/app-image-4.PNG)
-![app-preview-image-5](https://github.com/Userrick/Simple-Supply-Chain-Udacity/blob/master/tutorial-images/app-image-5.PNG)
+![app-preview-image-1](https://github.com/Userrick/FlightSurety/blob/master/tutorial-images/app-image-1.PNG)
+![app-preview-image-2](https://github.com/Userrick/FlightSurety/blob/master/tutorial-images/app-image-2.PNG)
 
 
 ## Getting Started
 
-These instructions will get you a copy of the supply chain and lets you run the client on the local machine and deploys your own supply chain contract to the love test network rinkeby.
+These instructions will get you a copy of the FlightSurety.app and lets you run the client on the local machine and deploys your own contract to the test network rinkeby.
 
 ### Prerequisites
 
 Please make sure you've enabled [MetaMask extension](https://metamask.io/) in your browser and [gulp](https://gulpjs.com/) installed.
 
-### Installing and Using the Supply Chain Contract for Yourself on the RINKEBY TESTNETWORK
+### Installing and Using the FlightSurety Contracts for Yourself on the RINKEBY TESTNETWORK
+
+#### Client Setup
 
 1. Clone this repository:
 
     ```bash
-    $ git clone https://github.com/Userrick/Simple-Supply-Chain-Udacity
+    $ git clone https://github.com/Userrick/FlightSurety
     ```
 
-2. Install all requisite npm packages (as listed in ```package.json```):
+2. Got to Flightsurety/client/ and install all requisite npm packages (as listed in ```package.json```):
 
     ```bash
     $ npm install
     ```
 
-3. Create a new file in the project folder with the name **migration-secrets.js**:
+3. Create a new file in **FlightSurety/client/src/blockchain/** with the name **migration-secrets.js**:
 
     ```bash
     $ touch migration-secrets.js
     ```
+4. Install truffle-hdwallet-provider in **FlightSurety/client/src/blockchain/**: 
 
-4. Copy the following into it (attention to https://):
+    ```bash
+    $ npm install
+    ```
+
+5. Copy the following into it (attention to https://):
 
     ```javascript
     const secrets = {
+        address: "YOUR ADDRESS WHICH WILL ALSO BE THE FIRST ADMIN OF FLIGHTSURETYDATA CONTRACT"
         mnemonic: "YOUR-SEED-WORDS-FROM-METAMASK-ACCOUNT",
         ENDPOINT: "https://YOUR-INFURA-ENDPOINT_KEY"
     }
@@ -69,14 +57,14 @@ Please make sure you've enabled [MetaMask extension](https://metamask.io/) in yo
     module.exports = secrets;
     ```
 
-5. Follow [this guide](https://metamask.zendesk.com/hc/en-us/articles/360015290032-How-to-Reveal-Your-Seed-Phrase) to reveal your seed words from your METAMASK account. 
+6. Follow [this guide](https://metamask.zendesk.com/hc/en-us/articles/360015290032-How-to-Reveal-Your-Seed-Phrase) to reveal your seed words from your METAMASK account. 
 
     a) **Be sure to be on the rinkeby testnetwork**
 
     b) Copy your seed words from your METAMASK into the respective marked section of the **secrets-migration.js** file
 
 
-6. Visit the [infura website](https://www.infura.io) 
+7. Visit the [infura website](https://www.infura.io) 
 
     a) login or create account
 
@@ -88,7 +76,7 @@ Please make sure you've enabled [MetaMask extension](https://metamask.io/) in yo
 
     d) PASTE it into the respective field in the **secrets-migration.js** file
 
-7. Now launch your personal supply chain to the network by following these commands:
+8. Now launch your personal flight insurance contracts to the network by following these commands:
 
     ```bash
     $ truffle compile
@@ -96,7 +84,51 @@ Please make sure you've enabled [MetaMask extension](https://metamask.io/) in yo
     $ truffle migrate --reset --network rinkeby
     ```
 
-8. Now launch the client by the following command:
+9. Now launch the client by the following command:
+
+    ```bash
+    $ npm start
+    ```
+
+#### Client Setup
+
+1. Got to Flightsurety/server/ and install all requisite npm packages (as listed in ```package.json```):
+
+    ```bash
+    $ npm install
+    ```
+
+2. Create a new file in **FlightSurety/server/** with the name **secrets.js**:
+
+    ```bash
+    $ touch secrets.js
+    ```
+
+3. Copy the following into it (attention to https://):
+
+    ```javascript
+    const secrets = {
+        mnemonic: "YOUR-SEED-WORDS-FROM-METAMASK-ACCOUNT",
+        ENDPOINT: "https://YOUR-INFURA-ENDPOINT_KEY",
+        privateKey: "YOUR-PRIVATE-KEY-OF-METAMASK-ACCOUNT-USED-FOR-REGISTRATING-DEFAULT-ORACLES-AND-ALSO-RESPOND-TO-ORACLE-REQUEST"
+    }
+
+    module.exports = secrets;
+    ```
+
+4. Edit the **config.js** file in Flightsurety/server/ to your needs 
+
+    Make sure to use the same address as for deploying your smart contract!
+
+5. Install MongoDB from [MONGODB](https://www.mongodb.com/)
+
+6. Open New Terminal and run: 
+
+    ```bash
+    $ mongod
+    ```
+
+7. Now launch the server by the following command in a new terminal and wait until every oracle of the 40 are registered:
 
     ```bash
     $ npm run dev
@@ -108,51 +140,38 @@ Please make sure you've enabled [MetaMask extension](https://metamask.io/) in yo
 
     **Enjoy!**
 
-### Running the Tests
+### Testing without losing too much eth and for that oracles from server work properly on rinkeby
 
-1. Install ganache-cli
-
-    ```
-    $ npm install -g ganache-cli
-    ```
-
-2. Open a seperate terminal window and run ganache-cli:
-
-    ```
-    ganache-cli -m "spirit supply whale amount human item harsh scare congress discover talent hamster"
-    ```
-
-3. Run the tests:
-
-    ```
-    truffle test
-    ```
-
+1. Make sure to search for all the comments in the FlightSuretyApp and FlightSuretyData contract marked with ///@dev and comment the direct below require statement out.
 
 ## Built With
 
 * [Ethereum](https://www.ethereum.org/) - Ethereum is a decentralized platform that runs smart contracts
-* [IPFS](https://ipfs.io/) - IPFS is the Distributed Web | A peer-to-peer hypermedia protocol
-to make the web faster, safer, and more open. Is used via the API of INFURA ipfs.infurs.io to save the image.
 * [Truffle Framework](http://truffleframework.com/) - Truffle is the most popular development framework for Ethereum with a mission to make your life a whole lot easier. 
-* [Gulp](https://gulpjs.com/) - Is used as building tool for e.g. to minify, convert ES6 to ES5, etc 
 * [truffle-hdwallet-provider](https://github.com/trufflesuite/truffle-hdwallet-provider) - HD Wallet-enabled Web3 provider. Use it to sign transactions for addresses derived from a 12-word mnemonic.
-* [NODE + NPM](https://github.com/nodejs/node) 
+* [NODE + NPM](https://github.com/nodejs/node)
+* [MONGODB](https://www.mongodb.com/) - The database for modern applications
+* [REACT](https://reactjs.org/) - A JavaScript library for building user interfaces
+* [REACT-Bootstrap](https://react-bootstrap.github.io/) - The most popular front-end framework Rebuilt for React. 
 
 ## Version Used
 
-* Truffle v5.0.17 (core: 5.0.16)
-* Solidity v0.5.0 (solc-js)
-* Node v10.15.3
+* Truffle v5.0.22 (core: 5.0.22)
+* Solidity v0.5.8 (solc-js)
+* Node v12.4.0
 * Web3.js v1.0.0-beta.37
 
 ## Authors
 
-Starter code was provided by [Udacity](https://github.com/udacity/nd1309-Project-6b-Example-Template)
+Starter code was provided by [Udacity](https://github.com/udacity/FlightSurety)
 
+## Resources
 
-## Acknowledgments
-
-* Solidity
-* Truffle
-* IPFS
+* [How does Ethereum work anyway?](https://medium.com/@preethikasireddy/how-does-ethereum-work-anyway-22d1df506369)
+* [BIP39 Mnemonic Generator](https://iancoleman.io/bip39/)
+* [Truffle Framework](http://truffleframework.com/)
+* [Ganache Local Blockchain](http://truffleframework.com/ganache/)
+* [Remix Solidity IDE](https://remix.ethereum.org/)
+* [Solidity Language Reference](http://solidity.readthedocs.io/en/v0.4.24/)
+* [Ethereum Blockchain Explorer](https://etherscan.io/)
+* [Web3Js Reference](https://github.com/ethereum/wiki/wiki/JavaScript-API)

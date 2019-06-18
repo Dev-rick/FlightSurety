@@ -7,8 +7,7 @@ const INITIAL_STATE = {
     web3Provider: null,
     web3: null,
     metamaskAccount: null,
-    contract: {},
-    ethers: null
+    contract: {}
 }
 
 
@@ -22,8 +21,6 @@ export default function(state = INITIAL_STATE, action) {
       return {...state, contract: action.payload}
     case WEB3:
       return {...state, web3: action.payload}
-    case ETHERS:
-      return {...state, ethers: action.payload}
     default:
       return state;
   }

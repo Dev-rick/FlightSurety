@@ -4,29 +4,22 @@ import "./SafeMath.sol";
 
 contract FlightSuretyData {
     using SafeMath
-    for uint;
+    for uint256;
 
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
     address private contractOwner; // Account used to deploy contract
-    uint256 numberOfAdmins = 0;
+    uint256 public numberOfAdmins = 0;
     bool operational;
-
-    uint8 private constant STATUS_CODE_UNKNOWN = 0;
-    uint8 private constant STATUS_CODE_ON_TIME = 10;
-    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
-    uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
-    uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
-    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
     struct Topic {
         bool exists;
         bool state;
         mapping(address => Member) members;
         uint256 numberOfCurrentYes;
-        uint requiredNumberOfYes;
+        uint256 requiredNumberOfYes;
     }
 
     struct Member {
@@ -37,39 +30,35 @@ contract FlightSuretyData {
     struct Airline {
         bool isRegistered;
         bool isAdmin;
-        uint balance;
+        uint256 balance;
     }
 
     struct Flight {
         bool exists;
         bool withdrawOpen;
-        uint8 statusCode;
         address payable airline;
-        uint totalBalance;
+        uint256 totalBalance;
         mapping(address => Passenger) passengers;
     }
 
     struct Passenger {
         bool isRegistered;
-        uint balance;
+        uint256 balance;
     }
 
     mapping(address => Airline) public airlines;   // Mapping for storing Airline profiles
     mapping(bytes32 => Flight) public flights;   // Mapping for storing Passenger profiles
     mapping(bytes32 => Topic) public topics;
+
     event Success(string);
     event Balance(uint);
+
     /********************************************************************************************/
-    /*                                       EVENT DEFINITIONS                                  */
+    /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
 
-
-    /**
-     * @dev Constructor
-     *      The deploying account becomes contractOwner
-     */
     constructor
-        (address payable FirstAirline, uint balance)
+        (address payable FirstAirline, uint256 balance)
     public {
         contractOwner = msg.sender;
         airlines[FirstAirline] = Airline(true, true, balance);
@@ -80,17 +69,6 @@ contract FlightSuretyData {
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
 
-    // Modifiers help avoid duplication of code. They are typically used to validate something
-    // before a function is allowed to be executed.
-
-    /**
-     * @dev Modifier that requires the "operational" boolean variable to be "true"
-     *      This is used on all state changing functions to pause the contract in
-     *      the event there is an issue that needs to be fixed
-     */
-    /**
-     * @dev Modifier that requires the "ContractOwner" account to be the function caller
-     */
     modifier requireContractOwner(address caller) {
         require(caller == contractOwner, "Caller is not contract owner");
         _;
@@ -121,7 +99,7 @@ contract FlightSuretyData {
     }
 
     /********************************************************************************************/
-    /*                                       UTILITY FUNCTIONS                                  */
+    /*                              INTERNAL UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
     function createNewTopic(address caller, bytes32 _topic) internal
@@ -135,25 +113,9 @@ contract FlightSuretyData {
 
     function toString(address x) internal pure returns (string memory) {
         bytes memory b = new bytes(20);
-        for (uint i = 0; i < 20; i++)
+        for (uint256 i = 0; i < 20; i++)
             b[i] = byte(uint8(uint(x) / (2**(8*(19 - i)))));
         return string(b);
-    }
-
-
-    /********************************************************************************************/
-    /*                                     SMART CONTRACT FUNCTIONS                             */
-    /********************************************************************************************/
-
-    // Get balance of account
-    function getBalance() public view returns (uint256) {
-        return address(this).balance;
-    }
-
-
-    // setting operational status
-    function setOperationalStatus(bool operationalStatus,address caller) external requireAdmin(caller){
-        operational = operationalStatus;
     }
 
     // Setting an opinion
@@ -179,7 +141,8 @@ contract FlightSuretyData {
             return false;
         }
         // for more complex voting if it is possible to change the opinion
-        // if (_opinion){}
+        // if (_opinion){
+        // }
         // else if (!_opinion) {
         //     topics[_topic].numberOfCurrentYes.sub(1);
         //     if (topics[_topic].numberOfCurrentYes < topics[_topic].requiredNumberOfYes) {
@@ -188,6 +151,28 @@ contract FlightSuretyData {
         //         return false;
         //     }
         // }
+    }
+
+    function getBalanceOfPassenger(bytes32 flight, address payable addressOfPassenger) internal view returns(uint) {
+        return flights[flight].passengers[addressOfPassenger].balance;
+    }
+
+    function getBalanceOfAirline(address payable _addressOfAirline) internal view returns(uint) {
+        return airlines[_addressOfAirline].balance;
+    }
+
+    /********************************************************************************************/
+    /*                            EXTERNAL SMART CONTRACT FUNCTIONS                             */
+    /********************************************************************************************/
+
+    // Get balance of account
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    // setting operational status
+    function setOperationalStatus(bool operationalStatus,address caller) external requireAdmin(caller){
+        operational = operationalStatus;
     }
 
     function getOpinion(address caller, bytes32 _topic)
@@ -202,18 +187,12 @@ contract FlightSuretyData {
         );
     }
 
-    /**
-     * @dev Add an airline to the registration queue
-     *      Can only be called from FlightSuretyApp contract
-     *
-     */
-
+    //register new airline
     function registerAirline(address payable addressOfAirline, address caller)
     external
     requireOperational
     requireAdmin(caller)
     {
-
         require(!airlines[addressOfAirline].isRegistered, "Airline is already registered.");
         if (numberOfAdmins < 4) {
             airlines[addressOfAirline] = Airline(true, false, 0);
@@ -244,8 +223,8 @@ contract FlightSuretyData {
     {
         require(airlines[addressOfAirline].isRegistered, "First register as Airline");
         require(!airlines[addressOfAirline].isAdmin, "Airline is already admin");
-        ///@dev for testing purposes commented out
-        // require(msg.value != 10 ether, "Min of 10 ether are required");
+        ///@dev comment this require out for testing purposes
+        require(msg.value != 10 ether, "Min of 10 ether are required");
         airlines[addressOfAirline].balance = msg.value;
         airlines[addressOfAirline].isAdmin = true;
         numberOfAdmins += 1;
@@ -260,11 +239,10 @@ contract FlightSuretyData {
         require(airlines[_airline].isRegistered == true, "Airline is not registered");
         require(msg.value > 0 wei, "You did not send any money along");
         require(!flights[_flight].passengers[_addressOfPassenger].isRegistered, "You have already insured against this flight");
-        uint value = msg.value;
+        uint256 value = msg.value;
         if (!flights[_flight].exists) {
             flights[_flight].exists = true;
             flights[_flight].withdrawOpen = false;
-            flights[_flight].statusCode = STATUS_CODE_UNKNOWN;
             flights[_flight].airline = _airline;
             flights[_flight].passengers[_addressOfPassenger].isRegistered = true;
             flights[_flight].passengers[_addressOfPassenger].balance = value;
@@ -286,7 +264,7 @@ contract FlightSuretyData {
     requireOperational
     {
         require(flights[_flight].exists, "Flight is not registered");
-        uint sum = flights[_flight].totalBalance;
+        uint256 sum = flights[_flight].totalBalance;
         airlines[flights[_flight].airline].balance = sum;
         delete flights[_flight];
     }
@@ -308,23 +286,19 @@ contract FlightSuretyData {
 
     }
 
-    function getBalanceOfPassenger(bytes32 flight, address payable addressOfPassenger) internal view returns(uint) {
-        return flights[flight].passengers[addressOfPassenger].balance;
-    }
-
     function withdrawPassengerMoney(bytes32 _flight, address payable _addressOfPassenger) external payable{
         require(flights[_flight].exists == true, "Flight has not been registered");
         require(flights[_flight].withdrawOpen == true, "Flight is not open for withdraw");
         require(flights[_flight].passengers[_addressOfPassenger].isRegistered == true, "You are not registered as passenger");
         require(flights[_flight].passengers[_addressOfPassenger].balance > 0, "You don't have any money secured");
-        uint balanceOfPassenger = getBalanceOfPassenger(_flight, _addressOfPassenger);
+        uint256 balanceOfPassenger = getBalanceOfPassenger(_flight, _addressOfPassenger);
         delete flights[_flight].passengers[_addressOfPassenger];
-        uint totalRefund = balanceOfPassenger.mul(15).div(10);
+        uint256 totalRefund = balanceOfPassenger.mul(15).div(10);
         require(balanceOfPassenger <= totalRefund, "Total Refund us not bigger than balanceOfPasseger");
-        uint compensation = totalRefund.sub(balanceOfPassenger);
+        uint256 compensation = totalRefund.sub(balanceOfPassenger);
         address payable addressOfAirline = flights[_flight].airline;
         require(flights[_flight].totalBalance >= balanceOfPassenger, "Total Balance is smaller than balanceOfPasseger");
-        uint balanceOfAirline = getBalanceOfAirline(addressOfAirline);
+        uint256 balanceOfAirline = getBalanceOfAirline(addressOfAirline);
         if (balanceOfAirline < compensation) {
             ///@dev normally this should not be the case but as the require of 10 eth is outcommented in the registerAdmin, it can be the case
             flights[_flight].totalBalance = flights[_flight].totalBalance.sub(balanceOfPassenger);
@@ -338,27 +312,16 @@ contract FlightSuretyData {
         }
     }
 
-
-    function getBalanceOfAirline(address payable _addressOfAirline) internal view returns(uint) {
-        return airlines[_addressOfAirline].balance;
-    }
-
     function withdrawAirlineMoney(address payable _addressOfAirline) external payable{
-        ///@dev Commented out for testing purposes
-        //require(airlines[_addressOfAirline].balance > 10, "You cannot withdraw money you need at least over ten ether in your account");
+        ///@dev comment this out for testing purposes
+        require(airlines[_addressOfAirline].balance > 10, "You cannot withdraw money you need at least over ten ether in your account");
         require(airlines[_addressOfAirline].isRegistered == true, "Airline is not registered");
         require(airlines[_addressOfAirline].balance > 0, "You don't have any money secured");
-        uint prev = getBalanceOfAirline(_addressOfAirline);
+        uint256 prev = getBalanceOfAirline(_addressOfAirline);
         delete airlines[_addressOfAirline];
         _addressOfAirline.transfer(prev);
     }
 
-    /**
-     * @dev Fallback function for funding smart contract.
-     *
-     */
     function() external payable {
-
     }
-
 }

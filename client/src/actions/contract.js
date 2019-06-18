@@ -2,10 +2,7 @@ import TruffleContract from 'truffle-contract';
 import Web3 from 'web3';
 import { CONTRACT, METAMASK_ACCOUNT, WEB3_PROVIDER, WEB3, ETHERS} from './types';
 import FlightSuretyApp from '../blockchain/build/contracts/FlightSuretyApp';
-import {ethers} from 'ethers';
 
-//signup is an action creator
-// callback marked with () in the SignUp component
 export const initWeb3 = (callback) => async dispatch => {
     if (window.ethereum) {
         dispatch({
@@ -38,17 +35,12 @@ export const initWeb3 = (callback) => async dispatch => {
 }
 
 export const getMetaskAccountID = (web3Provider, callback) => async dispatch => {
-
     const web3 = new Web3(web3Provider);
         dispatch({
             type: WEB3,
             payload: web3
         })
         // Retrieving accounts
-        dispatch({
-            type: ETHERS,
-            payload: ethers
-        })
 
     try {
         const accounts = await web3.eth.getAccounts()
@@ -64,8 +56,7 @@ export const getMetaskAccountID = (web3Provider, callback) => async dispatch => 
 }
 
 export const initContract = (web3Provider, callback) => async dispatch => {
-
-
+    
     /// JSONfy the smart contracts
     const FlightSuretyAppContract = await TruffleContract(FlightSuretyApp);
 

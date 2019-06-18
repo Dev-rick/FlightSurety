@@ -1,6 +1,6 @@
 import { compose } from 'redux';
 import React, {Component} from 'react';
-import {Button, Modal, Form, Container} from 'react-bootstrap';
+import {Button, Modal, Form} from 'react-bootstrap';
 import { connect } from 'react-redux';
 import LoadingModal from './LoadingModal';
 

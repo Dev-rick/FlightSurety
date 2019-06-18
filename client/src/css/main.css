@@ -1,5 +1,6 @@
 body {
-    background-image: url('../images/flight.jpg'); /* Source: iStockPhoto */
+    background-color: rgb(19, 19, 19);
+    background-image: url('../images/FlightSuretyLogo.png'); /* Source: favicon.cc */
+    background-position: center center;
     background-repeat: no-repeat;
-    background-size: cover;
 }

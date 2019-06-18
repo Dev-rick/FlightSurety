@@ -38,8 +38,7 @@ module.exports = (contract, decodedData) => {
             const isMatch = await oracle.compareIndexes(requestedIndex) 
             let randomResponse = generateRandomResponse();
             if (isMatch) {
-                // Fixing randomrsponse for text purposes
-                randomResponse = 20;
+                ///@dev Fix randomResponse to 20 for testing purposes
                 const data = myContract.methods.submitOracleResponse(decodedData[0], decodedData[1], decodedData[2], decodedData[3], randomResponse);
                 try{
                     const logs = await makeTransaction(data, fromAccount, toAddress, 500000);

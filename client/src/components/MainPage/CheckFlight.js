@@ -1,6 +1,6 @@
 import { compose } from 'redux';
 import React, {Component} from 'react';
-import {Container, Button, Form, Col, InputGroup} from 'react-bootstrap';
+import {Container, Button, Form, Col} from 'react-bootstrap';
 import { connect } from 'react-redux';
 import {ethers} from 'ethers';
 import WithdrawModal from './WithdrawModal'
@@ -257,8 +257,7 @@ function mapStateToProps(state) {
   return { 
       web3 : state.contract.web3,    
       metamaskAccount: state.contract.metamaskAccount,
-      contract: state.contract.contract,
-      ethers: state.contract.ethers
+      contract: state.contract.contract
   }
 }
 

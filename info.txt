@@ -1,19 +1,12 @@
 Next steps:
 
+// write README
+// comment all require out before submitting
+// make oracle response back to random
 
-# safeMath operator ==> a = a+b
+//write in readme:
 
-# make a new component for airline registration and make them store ethers
-# passenger get some of that money when he can wiithdraw  (1.5 multiple)
-# Make an operational status setting possible in client
-
-
-#First call function registerFlight(
-        string calldata _flight,
-        address payable _airline,
-        uint256 _timestamp
-        )
-#Second call function registerAdmin() external with value
+--> For testing purposes: comment all require out marked with @dev
 
 #============================Learned=============================================#
 # Interaction between contracts must not be strings
@@ -28,6 +21,3 @@ Next steps:
 #============================Learned=============================================#
 
 
-// comment all require out before submitting
-// write in comment for Udacity that you have commented all the different require() for testing purposes
-// make oracle response back to random

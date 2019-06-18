@@ -1,12 +1,10 @@
 import HDWalletProvider from 'truffle-hdwallet-provider';
 import secrets from './secrets';
-// import registerOracleInDataBase from './services/eventResponses/registerOracleInDataBase';
-// import respondToOracleRequest from './services/respondToOracleRequest';
 
-
+/********************************************************************************************/
+/*                                       Development Mode                                   */
+/********************************************************************************************/
 const devMode = false;
-//==================devMode======================//
-
 // set devMode = true
 // open a terminal and run: $ mongod
 // open a terminal and run: $ ganache-cli -m "spirit supply whale amount human item harsh scare congress discover talent hamster"
@@ -16,8 +14,9 @@ const networkIdDev = 1560520817919;
 // open a terminal in your server directory and run: $ npm run dev
 // in the terminal in your blockchain directory run: $ truffle test
 
-//==================liveMode=====================//
-
+/********************************************************************************************/
+/*                                       Live Mode                                   */
+/********************************************************************************************/
 // set devMode = true;
 // open a terminal and run: $ mongod
 // open a terminal in your blockchain directory and run: $ truffle migrate --network rinkeby -f 2 --reset
@@ -27,7 +26,6 @@ const developmentAccount = {
     address : '0x27d8d15cbc94527cadf5ec14b69519ae23288b95',
     privateKey : '0x9137dc4de37d28802ff9e5ee3fe982f1ca2e5faa52f54a00a6023f546b23e779'
 }
-
 
 const config = {
     contractsConfig : [{
@@ -60,7 +58,9 @@ const config = {
     },
     MetaMaskWallet : {
         accounts : [{
-            address : devMode ? developmentAccount.address: '0x309Fc768373E7141b3055dBcc1833668C11B7291',
+            //  should also be the address over the contract owner!
+            // if not register oracles will not work
+            address : devMode ? developmentAccount.address: '0x0be3dCDC09881e9e0773ce9287061Ff803A38d3d',
             privateKey : devMode ? developmentAccount.privateKey : secrets.privateKey
         }]
     }

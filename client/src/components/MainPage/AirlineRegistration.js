@@ -1,9 +1,8 @@
 import { compose } from 'redux';
 import React, {Component} from 'react';
-import {Container, Button, Form, Col} from 'react-bootstrap';
-
-import LoadingModal from './LoadingModal';
 import { connect } from 'react-redux';
+import {Container, Button, Form, Col} from 'react-bootstrap';
+import LoadingModal from './LoadingModal';
 
 class AirlineRegistration extends Component {
   constructor(...args) {
