@@ -1,13 +1,3 @@
-Next steps:
-
-// write README
-// comment all require out before submitting
-// make oracle response back to random
-
-//write in readme:
-
---> For testing purposes: comment all require out marked with @dev
-
 #============================Learned=============================================#
 # Interaction between contracts must not be strings
 # use bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
