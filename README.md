@@ -90,7 +90,7 @@ Please make sure you've enabled [MetaMask extension](https://metamask.io/) in yo
     $ npm start
     ```
 
-#### Client Setup
+#### Server Setup
 
 1. Got to Flightsurety/server/ and install all requisite npm packages (as listed in ```package.json```):
 
