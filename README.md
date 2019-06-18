@@ -6,8 +6,8 @@ This repository containts an Ethereum DApp that demonstrates a flight insurance 
 
 ## Preview
 
-![app-preview-image-1](https://github.com/Userrick/FlightSurety/tree/master/tutorial-images/app-image-1.PNG)
-![app-preview-image-2](https://github.com/Userrick/FlightSurety/tree/master/tutorial-images/app-image-2.PNG)
+![app-preview-image-1](https://github.com/Userrick/FlightSurety/blob/master/images/app-image-1.PNG)
+![app-preview-image-2](https://github.com/Userrick/FlightSurety/blob/master/images/app-image-2.PNG)
 
 
 ## Getting Started
